@@ -31,7 +31,7 @@
     ?>
     <header class="bg-green-800 shadow-md p-4 flex justify-between items-center sticky top-0 z-20">
         <div class="flex items-center">
-            <img src="images/logo.png" alt="Montoli's Logo" class="h-10 mr-3">
+            <img src="images/logo.png" alt="Montoli's Logo" class="h-12 mr-3">
             <h1 class="text-3xl font-bold text-white">Catálogo de Productos</h1>
         </div>
     </header>
