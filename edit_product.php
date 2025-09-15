@@ -29,7 +29,11 @@
     $message = '';
     $id = isset($_GET['id']) ? $_GET['id'] : die('ERROR: missing ID.');
     $product->id = $id;
-    
+
+    // First, read the existing product data to get the current image filename
+    $product->readOne();
+    $current_image = $product->image;
+
     if($_POST){
         $product->name = $_POST['nombre'];
         $product->description = $_POST['descripcion'];
@@ -39,23 +43,47 @@
         $product->third_party_sale_price = $_POST['third_party_sale_price'];
         $product->third_party_seller_percentage = $_POST['third_party_seller_percentage'];
 
+        // --- Handle image upload without validation ---
+        if (!empty($_FILES['image']['name'])) {
+            $target_dir = "uploads/";
+            $image_file_name = uniqid() . '-' . basename($_FILES["image"]["name"]);
+            $target_file = $target_dir . $image_file_name;
+
+            if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
+                $product->image = $image_file_name;
+            } else {
+                $message .= "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4' role='alert'>
+                                <strong class='font-bold'>Error!</strong>
+                                <span class='block sm:inline'>Hubo un error al subir el archivo.</span>
+                            </div>";
+                // If the upload fails, keep the original image
+                $product->image = $current_image;
+            }
+        } else {
+            // If no new image is uploaded, keep the existing one
+            $product->image = $current_image;
+        }
+
+        // --- End of image upload handling ---
+
         if($product->update()){
-            $message = "<div class='bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4' role='alert'>
+            $message .= "<div class='bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4' role='alert'>
                             <strong class='font-bold'>Éxito!</strong>
                             <span class='block sm:inline'>Producto actualizado exitosamente.</span>
                         </div>";
         } else {
-            $message = "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4' role='alert'>
+            $message .= "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4' role='alert'>
                             <strong class='font-bold'>Error!</strong>
                             <span class='block sm:inline'>No se pudo actualizar el producto.</span>
                         </div>";
         }
+
+        // Re-read the product to display the updated info (important for the image)
+        $product->readOne();
     }
     
-    $product->readOne();
     ?>
     <div class="flex">
-        <!-- Sidebar -->
         <div id="sidebar" class="bg-gray-800 text-white w-64 min-h-screen fixed top-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-30">
             <div class="p-6 text-2xl font-bold flex items-center">
                 <img src="images/logo.png" alt="Montoli's Logo" class="h-10 mr-3"> Montoli's
@@ -69,9 +97,6 @@
                 </a>
             </nav>
         </div>
-        <!-- /#sidebar -->
-
-        <!-- Page Content -->
         <div id="content" class="flex-1 md:ml-64 transition-all duration-300 ease-in-out">
             <header class="bg-white shadow-md p-4 flex justify-between items-center">
                 <button id="menu-toggle" class="md:hidden text-gray-600">
@@ -84,7 +109,7 @@
                 <div class="max-w-3xl mx-auto">
                     <?php echo $message; ?>
                     <div class="bg-white rounded-lg shadow-xl p-8 form-container">
-                        <form action="edit_product.php?id=<?php echo $id; ?>" method="post">
+                        <form action="edit_product.php?id=<?php echo $id; ?>" method="post" enctype="multipart/form-data">
                             <div class="mb-6">
                                 <label for="nombre" class="block text-gray-700 text-sm font-bold mb-2">Nombre del Producto</label>
                                 <input type="text" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" id="nombre" name="nombre" value="<?php echo $product->name; ?>" required>
@@ -116,6 +141,13 @@
                              <div class="mb-6">
                                 <label for="third_party_seller_percentage" class="block text-gray-700 text-sm font-bold mb-2">Porcentaje de Vendedor para Terceros (%)</label>
                                 <input type="text" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" id="third_party_seller_percentage" name="third_party_seller_percentage" value="<?php echo $product->third_party_seller_percentage; ?>" required>
+                            </div>
+                            <div class="mb-6">
+                                <label for="image" class="block text-gray-700 text-sm font-bold mb-2">Imagen del Producto</label>
+                                <input type="file" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" id="image" name="image">
+                                <?php if($product->image): ?>
+                                    <img src="uploads/<?php echo $product->image; ?>" alt="<?php echo $product->name; ?>" class="mt-4 h-32">
+                                <?php endif; ?>
                             </div>
                             <div class="flex items-center justify-center">
                                 <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200">

@@ -69,7 +69,8 @@ class Product {
     }
 
     function update(){
-        $query = "UPDATE " . $this->table_name . " SET name = :name, description = :description, quantity = :quantity, product_cost = :product_cost, sale_price = :sale_price, third_party_sale_price = :third_party_sale_price, third_party_seller_percentage = :third_party_seller_percentage WHERE id = :id";
+        // Add `image = :image` to the query
+        $query = "UPDATE " . $this->table_name . " SET name = :name, description = :description, quantity = :quantity, product_cost = :product_cost, sale_price = :sale_price, third_party_sale_price = :third_party_sale_price, third_party_seller_percentage = :third_party_seller_percentage, image = :image WHERE id = :id";
         $stmt = $this->conn->prepare($query);
 
         $this->name=htmlspecialchars(strip_tags($this->name));
@@ -79,6 +80,7 @@ class Product {
         $this->sale_price=htmlspecialchars(strip_tags($this->sale_price));
         $this->third_party_sale_price=htmlspecialchars(strip_tags($this->third_party_sale_price));
         $this->third_party_seller_percentage=htmlspecialchars(strip_tags($this->third_party_seller_percentage));
+        $this->image=htmlspecialchars(strip_tags($this->image)); // Sanitize image
         $this->id=htmlspecialchars(strip_tags($this->id));
 
         $stmt->bindParam(':name', $this->name);
@@ -88,6 +90,7 @@ class Product {
         $stmt->bindParam(':sale_price', $this->sale_price);
         $stmt->bindParam(':third_party_sale_price', $this->third_party_sale_price);
         $stmt->bindParam(':third_party_seller_percentage', $this->third_party_seller_percentage);
+        $stmt->bindParam(':image', $this->image); // Bind image
         $stmt->bindParam(':id', $this->id);
 
         if($stmt->execute()){
@@ -105,6 +108,20 @@ class Product {
             return true;
         }
         return false;
+    }
+
+    function search($keywords){
+        $query = "SELECT id, name, description, quantity, product_cost, sale_price, third_party_sale_price, third_party_seller_percentage, image FROM " . $this->table_name . " WHERE name LIKE ? OR description LIKE ? ORDER BY id DESC";
+        $stmt = $this->conn->prepare($query);
+
+        $keywords=htmlspecialchars(strip_tags($keywords));
+        $keywords = "%{$keywords}%";
+
+        $stmt->bindParam(1, $keywords);
+        $stmt->bindParam(2, $keywords);
+
+        $stmt->execute();
+        return $stmt;
     }
 }
 ?>

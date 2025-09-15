@@ -27,16 +27,37 @@
     $db = $database->getConnection();
 
     $product = new Product($db);
-    $stmt = $product->read();
+
+    $search_term = isset($_GET['s']) ? $_GET['s'] : '';
+
+    if($search_term){
+        $stmt = $product->search($search_term);
+    } else {
+        $stmt = $product->read();
+    }
     ?>
     <header class="bg-green-800 shadow-md p-4 flex justify-between items-center sticky top-0 z-20">
         <div class="flex items-center">
             <img src="images/logo.png" alt="Montoli's Logo" class="h-12 mr-3">
             <h1 class="text-3xl font-bold text-white">Catálogo de Productos</h1>
         </div>
+        <div class="flex items-center">
+            <a href="index.php" class="text-white hover:text-gray-200 mr-4">
+                <i class="fas fa-home mr-1"></i>
+                Inicio
+            </a>
+        </div>
     </header>
 
     <main class="p-6">
+        <div class="mb-6">
+            <form action="catalog.php" method="get" class="flex items-center max-w-lg mx-auto bg-white rounded-full shadow-md">
+                <input type="text" name="s" placeholder="Buscar productos..." value="<?php echo htmlspecialchars($search_term); ?>" class="w-full px-6 py-3 rounded-full focus:outline-none" id="search-input">
+                <button type="submit" class="bg-green-800 text-white rounded-full p-3 hover:bg-green-700 focus:outline-none mx-1">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
         <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <?php
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
