@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo de Productos - Montoli's</title>
+    <link rel="icon" href="images/logo.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
@@ -33,7 +34,7 @@
     if($search_term){
         $stmt = $product->search($search_term);
     } else {
-        $stmt = $product->read();
+        $stmt = $product->readInStock();
     }
     ?>
     <header class="bg-green-800 shadow-md p-4 flex justify-between items-center sticky top-0 z-20">
@@ -42,10 +43,10 @@
             <h1 class="text-3xl font-bold text-white">Catálogo de Productos</h1>
         </div>
         <div class="flex items-center">
-            <a href="index.php" class="text-white hover:text-gray-200 mr-4">
-                <i class="fas fa-home mr-1"></i>
-                Inicio
-            </a>
+            <button onclick="openCart()" class="text-white hover:text-gray-200 relative">
+                <i class="fas fa-shopping-cart text-2xl"></i>
+                <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+            </button>
         </div>
     </header>
 
@@ -62,18 +63,25 @@
             <?php
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
                 extract($row);
-                echo "<div class='product-card bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out'>";
                 $image_path = "uploads/{$image}";
-                if ($image && file_exists($image_path)) {
-                    echo "<img src='{$image_path}' alt='{$name}' class='w-full h-48 object-cover'>";
-                } else {
-                    echo "<img src='images/placeholder.png' alt='Imagen no disponible' class='w-full h-48 object-cover'>";
-                }
+                $image_src = ($image && file_exists($image_path)) ? $image_path : "images/placeholder.png";
+                $whatsapp_message = urlencode("Hola, me interesa este producto:\n\n{$name}\n{$description}\nPrecio: \${$sale_price}");
+                $whatsapp_url = "https://wa.me/584163723527?text={$whatsapp_message}";
+                echo "<div class='product-card bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out'>";
+                echo "<img src='{$image_src}' alt='{$name}' class='w-full h-48 object-cover cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$whatsapp_url}\")'>";
                 echo "<div class='p-4'>";
-                echo "<h3 class='text-xl font-bold text-gray-800 mb-2'>{$name}</h3>";
-                echo "<p class='text-gray-600 text-sm mb-4'>{$description}</p>";
-                echo "<div class='flex justify-between items-center'>";
+                echo "<h3 class='text-xl font-bold text-gray-800 mb-2 cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$whatsapp_url}\")'>{$name}</h3>";
+                echo "<p class='text-gray-600 text-sm mb-4 cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$whatsapp_url}\")'>{$description}</p>";
+                echo "<div class='flex justify-between items-center mb-4'>";
                 echo "<span class='text-2xl font-bold text-green-800'>&#36;{$sale_price}</span>";
+                echo "</div>";
+                echo "<div class='flex gap-2'>";
+                echo "<button onclick='quickAddToCart(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$whatsapp_url}\")' class='flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center text-sm'>";
+                echo "<i class='fas fa-cart-plus mr-1'></i> Carrito";
+                echo "</button>";
+                echo "<a href='{$whatsapp_url}' target='_blank' class='flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center text-sm'>";
+                echo "<i class='fab fa-whatsapp mr-1'></i> WhatsApp";
+                echo "</a>";
                 echo "</div>";
                 echo "</div>";
                 echo "</div>";
@@ -115,6 +123,274 @@
             opacity: [0, 1],
             delay: anime.stagger(100, {start: 300}),
             easing: 'easeOutExpo'
+        });
+    </script>
+
+    <!-- Product Modal -->
+    <div id="product-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-2xl max-w-md mx-auto overflow-hidden">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="modal-title" class="text-2xl font-bold text-gray-800"></h2>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <img id="modal-image" src="" alt="" class="w-full h-48 object-cover rounded-lg mb-4">
+                <p id="modal-description" class="text-gray-600 mb-4"></p>
+                <div class="flex justify-between items-center mb-6">
+                    <span id="modal-price" class="text-3xl font-bold text-green-800"></span>
+                </div>
+                <button onclick="addToCart()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center mb-3">
+                    <i class="fas fa-cart-plus mr-2"></i> Agregar al Carrito
+                </button>
+                <a id="whatsapp-btn" href="#" target="_blank" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center">
+                    <i class="fab fa-whatsapp mr-2"></i> Contactar por WhatsApp
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-2xl max-w-lg mx-auto overflow-hidden max-h-screen">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">Carrito de Compras</h2>
+                    <button onclick="closeCart()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div id="cart-items" class="max-h-96 overflow-y-auto mb-4">
+                    <!-- Cart items will be added here -->
+                </div>
+                <div class="border-t pt-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-lg font-bold">Total:</span>
+                        <span id="cart-total" class="text-2xl font-bold text-green-800">$0.00</span>
+                    </div>
+                    <button onclick="sendCartToWhatsApp()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center">
+                        <i class="fab fa-whatsapp mr-2"></i> Enviar Pedido por WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div id="notification-modal" class="fixed top-4 right-4 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-2xl p-4 max-w-sm border-l-4" id="notification-border">
+            <div class="flex items-center">
+                <i id="notification-icon" class="text-2xl mr-3"></i>
+                <div class="flex-1">
+                    <p id="notification-message" class="text-gray-800"></p>
+                </div>
+                <button onclick="closeNotification()" class="text-gray-500 hover:text-gray-700 ml-2">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentProduct = {};
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+        function updateCartCount() {
+            document.getElementById('cart-count').textContent = cart.length;
+        }
+
+        function openModal(name, description, image, price, whatsappUrl) {
+            currentProduct = { name, description, image, price, whatsappUrl };
+            document.getElementById('modal-title').textContent = name;
+            document.getElementById('modal-description').textContent = description;
+            document.getElementById('modal-image').src = image;
+            document.getElementById('modal-price').textContent = '$' + price;
+            document.getElementById('whatsapp-btn').href = whatsappUrl;
+            document.getElementById('product-modal').classList.remove('hidden');
+            document.getElementById('product-modal').classList.add('flex');
+            anime({
+                targets: '#product-modal .bg-white',
+                scale: [0.7, 1],
+                opacity: [0, 1],
+                duration: 300,
+                easing: 'easeOutExpo'
+            });
+        }
+
+        function closeModal() {
+            anime({
+                targets: '#product-modal .bg-white',
+                scale: [1, 0.7],
+                opacity: [1, 0],
+                duration: 300,
+                easing: 'easeInExpo',
+                complete: () => {
+                    document.getElementById('product-modal').classList.add('hidden');
+                    document.getElementById('product-modal').classList.remove('flex');
+                }
+            });
+        }
+
+        function addToCart() {
+            cart.push(currentProduct);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            closeModal();
+            showNotification('Producto agregado al carrito', 'success');
+        }
+
+        function quickAddToCart(name, description, image, price, whatsappUrl) {
+            const product = { name, description, image, price, whatsappUrl };
+            cart.push(product);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            showNotification('Producto agregado al carrito', 'success');
+        }
+
+        function openCart() {
+            renderCart();
+            document.getElementById('cart-modal').classList.remove('hidden');
+            document.getElementById('cart-modal').classList.add('flex');
+            anime({
+                targets: '#cart-modal .bg-white',
+                scale: [0.7, 1],
+                opacity: [0, 1],
+                duration: 300,
+                easing: 'easeOutExpo'
+            });
+        }
+
+        function closeCart() {
+            anime({
+                targets: '#cart-modal .bg-white',
+                scale: [1, 0.7],
+                opacity: [1, 0],
+                duration: 300,
+                easing: 'easeInExpo',
+                complete: () => {
+                    document.getElementById('cart-modal').classList.add('hidden');
+                    document.getElementById('cart-modal').classList.remove('flex');
+                }
+            });
+        }
+
+        function renderCart() {
+            const cartItems = document.getElementById('cart-items');
+            cartItems.innerHTML = '';
+            let total = 0;
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p class="text-gray-500 text-center py-8">El carrito está vacío</p>';
+            } else {
+                cart.forEach((item, index) => {
+                    total += parseFloat(item.price);
+                    cartItems.innerHTML += `
+                        <div class="flex items-center justify-between py-2 border-b">
+                            <div class="flex items-center">
+                                <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-cover rounded mr-3">
+                                <div>
+                                    <h4 class="font-semibold">${item.name}</h4>
+                                    <p class="text-sm text-gray-600">$${item.price}</p>
+                                </div>
+                            </div>
+                            <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('cart-total').textContent = '$' + total.toFixed(2);
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            renderCart();
+        }
+
+        function sendCartToWhatsApp() {
+            if (cart.length === 0) {
+                showNotification('El carrito está vacío', 'error');
+                return;
+            }
+
+            let message = 'Hola, me interesan los siguientes productos:\n\n';
+            let total = 0;
+
+            cart.forEach((item, index) => {
+                message += `${index + 1}. ${item.name} - $${item.price}\n`;
+                total += parseFloat(item.price);
+            });
+
+            message += `\nTotal: $${total.toFixed(2)}`;
+
+            const whatsappUrl = `https://wa.me/584163723527?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // Initialize cart count on page load
+        updateCartCount();
+
+        function showNotification(message, type = 'success') {
+            const modal = document.getElementById('notification-modal');
+            const border = document.getElementById('notification-border');
+            const icon = document.getElementById('notification-icon');
+            const msg = document.getElementById('notification-message');
+
+            msg.textContent = message;
+
+            if (type === 'success') {
+                border.className = 'bg-white rounded-lg shadow-2xl p-4 max-w-sm border-l-4 border-green-500';
+                icon.className = 'fas fa-check-circle text-green-500 text-2xl mr-3';
+            } else if (type === 'error') {
+                border.className = 'bg-white rounded-lg shadow-2xl p-4 max-w-sm border-l-4 border-red-500';
+                icon.className = 'fas fa-exclamation-triangle text-red-500 text-2xl mr-3';
+            }
+
+            modal.classList.remove('hidden');
+            anime({
+                targets: '#notification-modal',
+                translateX: [300, 0],
+                opacity: [0, 1],
+                duration: 300,
+                easing: 'easeOutExpo'
+            });
+
+            // Auto close after 3 seconds
+            setTimeout(() => {
+                closeNotification();
+            }, 3000);
+        }
+
+        function closeNotification() {
+            const modal = document.getElementById('notification-modal');
+            anime({
+                targets: '#notification-modal',
+                translateX: [0, 300],
+                opacity: [1, 0],
+                duration: 300,
+                easing: 'easeInExpo',
+                complete: () => {
+                    modal.classList.add('hidden');
+                }
+            });
+        }
+
+        // Close modals when clicking outside
+        document.getElementById('product-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        document.getElementById('cart-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCart();
+            }
         });
     </script>
 </body>

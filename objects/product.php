@@ -111,7 +111,7 @@ class Product {
     }
 
     function search($keywords){
-        $query = "SELECT id, name, description, quantity, product_cost, sale_price, third_party_sale_price, third_party_seller_percentage, image FROM " . $this->table_name . " WHERE name LIKE ? OR description LIKE ? ORDER BY id DESC";
+        $query = "SELECT id, name, description, quantity, product_cost, sale_price, third_party_sale_price, third_party_seller_percentage, image FROM " . $this->table_name . " WHERE (name LIKE ? OR description LIKE ?) AND quantity > 0 ORDER BY id DESC";
         $stmt = $this->conn->prepare($query);
 
         $keywords=htmlspecialchars(strip_tags($keywords));
@@ -120,6 +120,13 @@ class Product {
         $stmt->bindParam(1, $keywords);
         $stmt->bindParam(2, $keywords);
 
+        $stmt->execute();
+        return $stmt;
+    }
+
+    function readInStock() {
+        $query = "SELECT id, name, description, quantity, product_cost, sale_price, third_party_sale_price, third_party_seller_percentage, image FROM " . $this->table_name . " WHERE quantity > 0 ORDER BY id DESC";
+        $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt;
     }
