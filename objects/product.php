@@ -100,11 +100,27 @@ class Product {
     }
 
     function delete(){
-        $query = "DELETE FROM " . $this->table_name . " WHERE id = ?";
-        $stmt = $this->conn->prepare($query);
+        // First, get the image filename
+        $query_select = "SELECT image FROM " . $this->table_name . " WHERE id = ?";
+        $stmt_select = $this->conn->prepare($query_select);
         $this->id=htmlspecialchars(strip_tags($this->id));
-        $stmt->bindParam(1, $this->id);
-        if($stmt->execute()){
+        $stmt_select->bindParam(1, $this->id);
+        $stmt_select->execute();
+        $row = $stmt_select->fetch(PDO::FETCH_ASSOC);
+
+        // Delete the product from database
+        $query_delete = "DELETE FROM " . $this->table_name . " WHERE id = ?";
+        $stmt_delete = $this->conn->prepare($query_delete);
+        $stmt_delete->bindParam(1, $this->id);
+
+        if($stmt_delete->execute()){
+            // Delete the associated image file if it exists
+            if($row && $row['image'] && $row['image'] != 'placeholder.png'){
+                $image_path = "../uploads/" . $row['image'];
+                if(file_exists($image_path)){
+                    unlink($image_path);
+                }
+            }
             return true;
         }
         return false;
