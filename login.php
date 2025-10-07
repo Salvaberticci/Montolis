@@ -55,8 +55,7 @@
 
     <div class="login-container rounded-lg shadow-2xl p-8 max-w-md w-full mx-4">
         <div class="text-center mb-8">
-            <img src="images/logo.png" alt="Montoli's Logo" class="h-16 mx-auto mb-4">
-            <h1 class="text-3xl font-bold text-gray-800">Montoli's</h1>
+            <img src="images/logo-2.jpeg" alt="Montoli's Logo" class="h-16 mx-auto mb-4">
             <p class="text-gray-600">Sistema de Inventario</p>
         </div>
 
@@ -91,12 +90,6 @@
             </button>
         </form>
 
-        <div class="mt-6 text-center">
-            <p class="text-gray-600 text-sm">
-                Usuario por defecto: <strong>admin</strong><br>
-                Contraseña: <strong>admin123</strong>
-            </p>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
