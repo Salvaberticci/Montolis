@@ -71,6 +71,12 @@ $stmt_total_products = $db->prepare($query_total_products);
 $stmt_total_products->execute();
 $total_products = $stmt_total_products->fetch(PDO::FETCH_ASSOC) ?: ['total_products' => 0, 'total_stock' => 0];
 
+// Calculate total stock value
+$query_stock_value = "SELECT SUM(sale_price * quantity) as total_stock_value FROM products";
+$stmt_stock_value = $db->prepare($query_stock_value);
+$stmt_stock_value->execute();
+$stock_data = $stmt_stock_value->fetch(PDO::FETCH_ASSOC) ?: ['total_stock_value' => 0];
+
 // Calculate total investment (cost of all products in inventory)
 $query_total_investment = "SELECT SUM(product_cost * quantity) as total_investment FROM products";
 $stmt_total_investment = $db->prepare($query_total_investment);
@@ -140,6 +146,9 @@ $pdf->Cell(0, 8, '$' . number_format($profit_data['total_profits'] ?? 0, 2), 0, 
 
 $pdf->Cell(100, 8, 'Valor de Ventas:', 0, 0);
 $pdf->Cell(0, 8, '$' . number_format($profit_data['total_sales_value'] ?? 0, 2), 0, 1);
+
+$pdf->Cell(100, 8, 'Valor del Stock:', 0, 0);
+$pdf->Cell(0, 8, '$' . number_format($stock_data['total_stock_value'] ?? 0, 2), 0, 1);
 
 $pdf->Cell(100, 8, 'Costo de Productos Vendidos:', 0, 0);
 $pdf->Cell(0, 8, '$' . number_format($profit_data['total_cost_sold'] ?? 0, 2), 0, 1);

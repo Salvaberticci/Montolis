@@ -16,6 +16,43 @@
             height: 100%;
             z-index: -1;
         }
+
+        .info-icon {
+            cursor: help;
+            transition: color 0.2s ease;
+        }
+
+        .info-icon:hover {
+            color: #3B82F6 !important;
+        }
+
+        /* Tooltip styling for better visibility */
+        [title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            margin-bottom: 8px;
+        }
+
+        [title]:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.8);
+            margin-bottom: 3px;
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -106,6 +143,12 @@
     $stmt_profits->execute();
     $profit_data = $stmt_profits->fetch(PDO::FETCH_ASSOC) ?: ['total_profits' => 0, 'total_cost_sold' => 0, 'total_sales_value' => 0];
 
+    // Calculate total stock value (sum of sale_price * quantity for all products in inventory)
+    $query_stock_value = "SELECT SUM(sale_price * quantity) as total_stock_value FROM products";
+    $stmt_stock_value = $db->prepare($query_stock_value);
+    $stmt_stock_value->execute();
+    $stock_data = $stmt_stock_value->fetch(PDO::FETCH_ASSOC) ?: ['total_stock_value' => 0];
+
     // Get movement type breakdown (since no sales data exists)
     $query_movement_types = "SELECT type, COUNT(*) as count, SUM(quantity) as total_quantity
                             FROM inventory_movements
@@ -162,37 +205,66 @@
 
             <main class="p-6">
                 <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-600">Dinero Invertido</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative">
+                        <div class="flex-1">
+                            <div class="flex items-center mb-2">
+                                <h3 class="text-lg font-semibold text-gray-600">Dinero Invertido</h3>
+                                <i class="fas fa-info-circle info-icon text-gray-400 ml-2 text-sm"
+                                   title="Total del costo de adquisición de todos los productos actualmente en inventario"></i>
+                            </div>
                             <p class="text-3xl font-bold text-red-600">$<?php echo number_format($investment_data['total_investment'] ?? 0, 2); ?></p>
                         </div>
                         <div class="bg-red-500 rounded-full p-4">
                             <i class="fas fa-dollar-sign text-white text-2xl"></i>
                         </div>
                     </div>
-                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-600">Ganancias Totales</h3>
+                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative">
+                        <div class="flex-1">
+                            <div class="flex items-center mb-2">
+                                <h3 class="text-lg font-semibold text-gray-600">Ganancias Totales</h3>
+                                <i class="fas fa-info-circle info-icon text-gray-400 ml-2 text-sm"
+                                   title="Beneficio neto obtenido de las ventas (precio de venta menos costo del producto)"></i>
+                            </div>
                             <p class="text-3xl font-bold text-green-600">$<?php echo number_format($profit_data['total_profits'] ?? 0, 2); ?></p>
                         </div>
                         <div class="bg-green-500 rounded-full p-4">
                             <i class="fas fa-chart-line text-white text-2xl"></i>
                         </div>
                     </div>
-                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-600">Valor de Ventas</h3>
+                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative">
+                        <div class="flex-1">
+                            <div class="flex items-center mb-2">
+                                <h3 class="text-lg font-semibold text-gray-600">Valor de Ventas</h3>
+                                <i class="fas fa-info-circle info-icon text-gray-400 ml-2 text-sm"
+                                   title="Ingresos totales generados por las ventas realizadas"></i>
+                            </div>
                             <p class="text-3xl font-bold text-blue-600">$<?php echo number_format($profit_data['total_sales_value'] ?? 0, 2); ?></p>
                         </div>
                         <div class="bg-blue-500 rounded-full p-4">
                             <i class="fas fa-shopping-cart text-white text-2xl"></i>
                         </div>
                     </div>
-                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-600">Total Movimientos</h3>
+                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative">
+                        <div class="flex-1">
+                            <div class="flex items-center mb-2">
+                                <h3 class="text-lg font-semibold text-gray-600">Valor del Stock</h3>
+                                <i class="fas fa-info-circle info-icon text-gray-400 ml-2 text-sm"
+                                   title="Valor potencial de venta de todo el inventario actual (precio de venta × cantidad)"></i>
+                            </div>
+                            <p class="text-3xl font-bold text-indigo-600">$<?php echo number_format($stock_data['total_stock_value'] ?? 0, 2); ?></p>
+                        </div>
+                        <div class="bg-indigo-500 rounded-full p-4">
+                            <i class="fas fa-warehouse text-white text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative">
+                        <div class="flex-1">
+                            <div class="flex items-center mb-2">
+                                <h3 class="text-lg font-semibold text-gray-600">Total Movimientos</h3>
+                                <i class="fas fa-info-circle info-icon text-gray-400 ml-2 text-sm"
+                                   title="Número total de registros de entrada y salida en el sistema de inventario"></i>
+                            </div>
                             <p class="text-3xl font-bold text-gray-800"><?php echo number_format(($movement_stats['entry_count'] ?? 0) + ($movement_stats['exit_count'] ?? 0)); ?></p>
                         </div>
                         <div class="bg-purple-500 rounded-full p-4">
