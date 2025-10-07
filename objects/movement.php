@@ -79,6 +79,64 @@ class Movement {
         return $stmt;
     }
 
+    function readOne() {
+        $query = "SELECT m.id, m.product_id, p.name as product_name, m.type, m.quantity, m.reason, m.client_name, m.client_contact, m.date FROM " . $this->table_name . " m JOIN products p ON m.product_id = p.id WHERE m.id = ? LIMIT 0,1";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $this->id);
+        $stmt->execute();
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $this->id = $row['id'];
+        $this->product_id = $row['product_id'];
+        $this->type = $row['type'];
+        $this->quantity = $row['quantity'];
+        $this->reason = $row['reason'];
+        $this->client_name = $row['client_name'];
+        $this->client_contact = $row['client_contact'];
+    }
+
+    function update() {
+        $query = "UPDATE " . $this->table_name . " SET product_id=:product_id, type=:type, quantity=:quantity, reason=:reason, client_name=:client_name, client_contact=:client_contact WHERE id=:id";
+
+        $stmt = $this->conn->prepare($query);
+
+        $this->product_id = htmlspecialchars(strip_tags($this->product_id));
+        $this->type = htmlspecialchars(strip_tags($this->type));
+        $this->quantity = htmlspecialchars(strip_tags($this->quantity));
+        $this->reason = htmlspecialchars(strip_tags($this->reason));
+        $this->client_name = htmlspecialchars(strip_tags($this->client_name));
+        $this->client_contact = htmlspecialchars(strip_tags($this->client_contact));
+        $this->id = htmlspecialchars(strip_tags($this->id));
+
+        $stmt->bindParam(":product_id", $this->product_id);
+        $stmt->bindParam(":type", $this->type);
+        $stmt->bindParam(":quantity", $this->quantity);
+        $stmt->bindParam(":reason", $this->reason);
+        $stmt->bindParam(":client_name", $this->client_name);
+        $stmt->bindParam(":client_contact", $this->client_contact);
+        $stmt->bindParam(":id", $this->id);
+
+        if($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
+
+    function delete() {
+        $query = "DELETE FROM " . $this->table_name . " WHERE id = ?";
+
+        $stmt = $this->conn->prepare($query);
+        $this->id = htmlspecialchars(strip_tags($this->id));
+        $stmt->bindParam(1, $this->id);
+
+        if($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
+
     private function updateProductQuantity() {
         $query = "UPDATE products SET quantity = quantity " . ($this->type == 'entry' ? '+' : '-') . " :quantity WHERE id = :product_id";
         $stmt = $this->conn->prepare($query);

@@ -48,6 +48,21 @@
     $notification = '';
     $notification_type = '';
 
+    // Handle delete action
+    if(isset($_GET['delete']) && isset($_GET['id'])) {
+        $movement->id = $_GET['id'];
+        if($movement->delete()) {
+            $notification = 'Movimiento eliminado exitosamente.';
+            $notification_type = 'success';
+        } else {
+            $notification = 'Error al eliminar el movimiento.';
+            $notification_type = 'error';
+        }
+        // Redirect to remove delete parameters from URL
+        header("Location: inventory_movements.php");
+        exit();
+    }
+
     if($_POST && isset($_POST['product_id'])) {
         $movement->product_id = $_POST['product_id'];
         $movement->type = $_POST['type'];
@@ -210,6 +225,7 @@
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                    <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
@@ -226,6 +242,16 @@
                                     echo "<td class='py-4 px-6 text-gray-500'>{$row['client_name']}</td>";
                                     echo "<td class='py-4 px-6 text-gray-500'>{$row['client_contact']}</td>";
                                     echo "<td class='py-4 px-6 whitespace-nowrap text-gray-500'>{$row['date']}</td>";
+                                    echo "<td class='py-4 px-6 whitespace-nowrap text-sm font-medium'>";
+                                    echo "<div class='flex space-x-2'>";
+                                    echo "<a href='edit_movement.php?id={$row['id']}' class='bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-xs transition-colors duration-200'>";
+                                    echo "<i class='fas fa-edit mr-1'></i>Editar";
+                                    echo "</a>";
+                                    echo "<button onclick='confirmDelete({$row['id']})' class='bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-xs transition-colors duration-200'>";
+                                    echo "<i class='fas fa-trash mr-1'></i>Eliminar";
+                                    echo "</button>";
+                                    echo "</div>";
+                                    echo "</td>";
                                     echo "</tr>";
                                 }
                                 ?>
@@ -248,6 +274,18 @@
                 <button onclick="closeNotification()" class="text-gray-500 hover:text-gray-700 ml-2">
                     <i class="fas fa-times"></i>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-40">
+        <div class="bg-white rounded-lg shadow-2xl p-8 max-w-sm mx-auto">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Confirmar Eliminación</h2>
+            <p class="text-gray-600 mb-6">¿Estás seguro de que quieres eliminar este movimiento? Esta acción no se puede deshacer.</p>
+            <div class="flex justify-end">
+                <button id="cancel-delete" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg mr-4 transition-colors duration-200">Cancelar</button>
+                <a href="#" id="confirm-delete" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">Eliminar</a>
             </div>
         </div>
     </div>
@@ -297,6 +335,48 @@
                 }
             });
         }
+
+        function confirmDelete(id) {
+            const deleteModal = document.getElementById('delete-modal');
+            const confirmDelete = document.getElementById('confirm-delete');
+
+            confirmDelete.href = `inventory_movements.php?delete=1&id=${id}`;
+            deleteModal.classList.remove('hidden');
+            deleteModal.classList.add('flex');
+
+            anime({
+                targets: '#delete-modal .bg-white',
+                scale: [0.7, 1],
+                opacity: [0, 1],
+                duration: 300,
+                easing: 'easeOutExpo'
+            });
+        }
+
+        function closeDeleteModal() {
+            const deleteModal = document.getElementById('delete-modal');
+            anime({
+                targets: '#delete-modal .bg-white',
+                scale: [1, 0.7],
+                opacity: [1, 0],
+                duration: 300,
+                easing: 'easeInExpo',
+                complete: () => {
+                    deleteModal.classList.add('hidden');
+                    deleteModal.classList.remove('flex');
+                }
+            });
+        }
+
+        // Add event listener for cancel button
+        document.getElementById('cancel-delete').addEventListener('click', closeDeleteModal);
+
+        // Close modal when clicking outside
+        document.getElementById('delete-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
 
         <?php if($notification): ?>
         showNotification('<?php echo $notification; ?>', '<?php echo $notification_type; ?>');
