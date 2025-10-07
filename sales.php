@@ -20,6 +20,14 @@
 <body class="bg-gray-100 font-sans">
     <div id="particles-js"></div>
     <?php
+    session_start();
+
+    // Check if user is logged in
+    if(!isset($_SESSION['user_id'])) {
+        header("Location: login.php");
+        exit();
+    }
+
     include_once 'config/database.php';
     include_once 'objects/sale.php';
 
@@ -42,12 +50,29 @@
                 <a href="add_product.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
                     <i class="fas fa-plus mr-3"></i> Añadir Producto
                 </a>
+                <a href="catalog.php" target="_blank" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
+                    <i class="fas fa-book-open mr-3"></i> Ver Catálogo
+                </a>
                 <a href="add_sale.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
                     <i class="fas fa-cart-plus mr-3"></i> Registrar Venta
                 </a>
                 <a href="sales.php" class="flex items-center py-3 px-6 text-gray-300 bg-gray-700">
                     <i class="fas fa-file-invoice-dollar mr-3"></i> Ver Ventas
                 </a>
+                <a href="inventory_movements.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
+                    <i class="fas fa-exchange-alt mr-3"></i> Movimientos
+                </a>
+                <a href="statistics.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
+                    <i class="fas fa-chart-bar mr-3"></i> Estadísticas
+                </a>
+                <div class="border-t border-gray-600 mt-6 pt-6">
+                    <div class="px-6 py-2 text-gray-400 text-sm">
+                        <i class="fas fa-user mr-2"></i><?php echo htmlspecialchars($_SESSION['username']); ?>
+                    </div>
+                    <a href="logout.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-red-600 transition-colors duration-200">
+                        <i class="fas fa-sign-out-alt mr-3"></i> Cerrar Sesión
+                    </a>
+                </div>
             </nav>
         </div>
         <!-- /#sidebar -->
@@ -70,7 +95,9 @@
                                 <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
                                 <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
                                 <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio de Venta</th>
-                                <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Venta</th>
+                                <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Pago</th>
+                                <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Pendiente</th>
                                 <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                             </tr>
                         </thead>
@@ -78,12 +105,39 @@
                             <?php
                             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
                                 extract($row);
+
+                                // Format payment type
+                                $payment_type_label = ($payment_type == 'cash') ? 'Efectivo' : 'Crédito';
+
+                                // Format payment status with colors
+                                $status_color = '';
+                                $status_label = '';
+                                switch($payment_status) {
+                                    case 'paid':
+                                        $status_color = 'text-green-600';
+                                        $status_label = 'Pagado';
+                                        break;
+                                    case 'pending':
+                                        $status_color = 'text-red-600';
+                                        $status_label = 'Pendiente';
+                                        break;
+                                    case 'partial':
+                                        $status_color = 'text-yellow-600';
+                                        $status_label = 'Parcial';
+                                        break;
+                                    default:
+                                        $status_color = 'text-gray-600';
+                                        $status_label = $payment_status;
+                                }
+
                                 echo "<tr class='table-row'>";
                                     echo "<td class='py-4 px-6 whitespace-nowrap'>{$id}</td>";
                                     echo "<td class='py-4 px-6 whitespace-nowrap font-medium text-gray-900'>{$product_name}</td>";
                                     echo "<td class='py-4 px-6 text-gray-500'>{$quantity_sold}</td>";
                                     echo "<td class='py-4 px-6 text-green-600 font-semibold'>&#36;{$sale_price}</td>";
-                                    echo "<td class='py-4 px-6 text-gray-500'>{$sale_type}</td>";
+                                    echo "<td class='py-4 px-6 text-gray-500'>{$payment_type_label}</td>";
+                                    echo "<td class='py-4 px-6 {$status_color} font-semibold'>{$status_label}</td>";
+                                    echo "<td class='py-4 px-6 text-red-600 font-semibold'>&#36;" . number_format($remaining_balance ?? 0, 2) . "</td>";
                                     echo "<td class='py-4 px-6 text-gray-500'>{$sale_date}</td>";
                                 echo "</tr>";
                             }

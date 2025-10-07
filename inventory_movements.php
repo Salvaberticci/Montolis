@@ -20,6 +20,14 @@
 <body class="bg-gray-100 font-sans">
     <div id="particles-js"></div>
     <?php
+    session_start();
+
+    // Check if user is logged in
+    if(!isset($_SESSION['user_id'])) {
+        header("Location: login.php");
+        exit();
+    }
+
     include_once 'config/database.php';
     include_once 'objects/product.php';
     include_once 'objects/movement.php';
@@ -45,6 +53,8 @@
         $movement->type = $_POST['type'];
         $movement->quantity = $_POST['quantity'];
         $movement->reason = $_POST['reason'];
+        $movement->client_name = $_POST['client_name'] ?? '';
+        $movement->client_contact = $_POST['client_contact'] ?? '';
 
         if($movement->create()) {
             $notification = 'Movimiento registrado exitosamente.';
@@ -77,6 +87,14 @@
                 <a href="statistics.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
                     <i class="fas fa-chart-bar mr-3"></i> Estadísticas
                 </a>
+                <div class="border-t border-gray-600 mt-6 pt-6">
+                    <div class="px-6 py-2 text-gray-400 text-sm">
+                        <i class="fas fa-user mr-2"></i><?php echo htmlspecialchars($_SESSION['username']); ?>
+                    </div>
+                    <a href="logout.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-red-600 transition-colors duration-200">
+                        <i class="fas fa-sign-out-alt mr-3"></i> Cerrar Sesión
+                    </a>
+                </div>
             </nav>
         </div>
         <!-- /#sidebar -->
@@ -121,6 +139,14 @@
                             <div>
                                 <label for="reason" class="block text-sm font-medium text-gray-700">Razón</label>
                                 <input type="text" name="reason" id="reason" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+                            </div>
+                            <div>
+                                <label for="client_name" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label>
+                                <input type="text" name="client_name" id="client_name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="client_contact" class="block text-sm font-medium text-gray-700">Contacto del Cliente</label>
+                                <input type="text" name="client_contact" id="client_contact" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Teléfono o email">
                             </div>
                         </div>
                         <div class="mt-6">
@@ -181,6 +207,8 @@
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Razón</th>
+                                    <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                                    <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                                 </tr>
                             </thead>
@@ -195,6 +223,8 @@
                                     echo "<td class='py-4 px-6 whitespace-nowrap {$type_color} font-semibold'>{$type_label}</td>";
                                     echo "<td class='py-4 px-6 whitespace-nowrap text-gray-500'>{$row['quantity']}</td>";
                                     echo "<td class='py-4 px-6 text-gray-500'>{$row['reason']}</td>";
+                                    echo "<td class='py-4 px-6 text-gray-500'>{$row['client_name']}</td>";
+                                    echo "<td class='py-4 px-6 text-gray-500'>{$row['client_contact']}</td>";
                                     echo "<td class='py-4 px-6 whitespace-nowrap text-gray-500'>{$row['date']}</td>";
                                     echo "</tr>";
                                 }

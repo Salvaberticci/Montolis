@@ -21,6 +21,14 @@
 <body class="bg-gray-100 font-sans">
     <div id="particles-js"></div>
     <?php
+    session_start();
+
+    // Check if user is logged in
+    if(!isset($_SESSION['user_id'])) {
+        header("Location: login.php");
+        exit();
+    }
+
     include_once 'config/database.php';
     include_once 'objects/product.php';
     include_once 'objects/sale.php';
@@ -31,38 +39,80 @@
     $product = new Product($db);
     $sale = new Sale($db);
 
-    // Get best-selling products
-    $query_best_sellers = "SELECT p.name, SUM(s.quantity_sold) as total_sold, SUM(s.sale_price * s.quantity_sold) as total_revenue
-                          FROM sales s
-                          LEFT JOIN products p ON s.product_id = p.id
-                          GROUP BY s.product_id
-                          ORDER BY total_sold DESC
-                          LIMIT 10";
-    $stmt_best_sellers = $db->prepare($query_best_sellers);
-    $stmt_best_sellers->execute();
-    $best_sellers = $stmt_best_sellers->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    // Get movement statistics (entries and exits)
+    $query_movement_stats = "SELECT
+                                SUM(CASE WHEN type = 'entry' THEN quantity ELSE 0 END) as total_entries,
+                                SUM(CASE WHEN type = 'exit' THEN quantity ELSE 0 END) as total_exits,
+                                COUNT(CASE WHEN type = 'entry' THEN 1 END) as entry_count,
+                                COUNT(CASE WHEN type = 'exit' THEN 1 END) as exit_count
+                             FROM inventory_movements";
+    $stmt_movement_stats = $db->prepare($query_movement_stats);
+    $stmt_movement_stats->execute();
+    $movement_stats = $stmt_movement_stats->fetch(PDO::FETCH_ASSOC) ?: ['total_entries' => 0, 'total_exits' => 0, 'entry_count' => 0, 'exit_count' => 0];
 
-    // Get sales by month (last 12 months)
-    $query_sales_by_month = "SELECT DATE_FORMAT(sale_date, '%Y-%m') as month, SUM(quantity_sold) as total_quantity, SUM(sale_price * quantity_sold) as total_revenue
-                            FROM sales
-                            WHERE sale_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
-                            GROUP BY DATE_FORMAT(sale_date, '%Y-%m')
-                            ORDER BY month";
-    $stmt_sales_by_month = $db->prepare($query_sales_by_month);
-    $stmt_sales_by_month->execute();
-    $sales_by_month = $stmt_sales_by_month->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    // Get movements by month (last 12 months)
+    $query_movements_by_month = "SELECT DATE_FORMAT(date, '%Y-%m') as month,
+                                        SUM(CASE WHEN type = 'entry' THEN quantity ELSE 0 END) as entries,
+                                        SUM(CASE WHEN type = 'exit' THEN quantity ELSE 0 END) as exits
+                                 FROM inventory_movements
+                                 WHERE date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+                                 GROUP BY DATE_FORMAT(date, '%Y-%m')
+                                 ORDER BY month";
+    $stmt_movements_by_month = $db->prepare($query_movements_by_month);
+    $stmt_movements_by_month->execute();
+    $movements_by_month = $stmt_movements_by_month->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
+    // Get most moved products
+    $query_most_moved = "SELECT p.name,
+                                SUM(CASE WHEN m.type = 'entry' THEN m.quantity ELSE 0 END) as total_entries,
+                                SUM(CASE WHEN m.type = 'exit' THEN m.quantity ELSE 0 END) as total_exits,
+                                (SUM(CASE WHEN m.type = 'entry' THEN m.quantity ELSE 0 END) - SUM(CASE WHEN m.type = 'exit' THEN m.quantity ELSE 0 END)) as net_movement
+                         FROM inventory_movements m
+                         LEFT JOIN products p ON m.product_id = p.id
+                         GROUP BY m.product_id
+                         ORDER BY (SUM(CASE WHEN m.type = 'entry' THEN m.quantity ELSE 0 END) + SUM(CASE WHEN m.type = 'exit' THEN m.quantity ELSE 0 END)) DESC
+                         LIMIT 10";
+    $stmt_most_moved = $db->prepare($query_most_moved);
+    $stmt_most_moved->execute();
+    $most_moved_products = $stmt_most_moved->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-    // Get total stats
-    $query_total_sales = "SELECT COUNT(*) as total_sales, SUM(quantity_sold) as total_quantity_sold, SUM(sale_price * quantity_sold) as total_revenue FROM sales";
-    $stmt_total_sales = $db->prepare($query_total_sales);
-    $stmt_total_sales->execute();
-    $total_stats = $stmt_total_sales->fetch(PDO::FETCH_ASSOC) ?: ['total_sales' => 0, 'total_quantity_sold' => 0, 'total_revenue' => 0];
+    // Get total stats (use movement data)
+    $total_stats = [
+        'total_sales' => $movement_stats['exit_count'] ?? 0,
+        'total_quantity_sold' => $movement_stats['total_exits'] ?? 0,
+        'total_revenue' => 0 // No revenue data in movements
+    ];
 
     $query_total_products = "SELECT COUNT(*) as total_products, SUM(quantity) as total_stock FROM products";
     $stmt_total_products = $db->prepare($query_total_products);
     $stmt_total_products->execute();
     $total_products = $stmt_total_products->fetch(PDO::FETCH_ASSOC) ?: ['total_products' => 0, 'total_stock' => 0];
+
+    // Calculate total investment (cost of all products in inventory)
+    $query_total_investment = "SELECT SUM(product_cost * quantity) as total_investment FROM products";
+    $stmt_total_investment = $db->prepare($query_total_investment);
+    $stmt_total_investment->execute();
+    $investment_data = $stmt_total_investment->fetch(PDO::FETCH_ASSOC) ?: ['total_investment' => 0];
+
+    // Calculate profits from exits (sales) - using product sale_price vs product_cost
+    $query_profits = "SELECT
+                        SUM((p.sale_price - p.product_cost) * m.quantity) as total_profits,
+                        SUM(p.product_cost * m.quantity) as total_cost_sold,
+                        SUM(p.sale_price * m.quantity) as total_sales_value
+                      FROM inventory_movements m
+                      LEFT JOIN products p ON m.product_id = p.id
+                      WHERE m.type = 'exit'";
+    $stmt_profits = $db->prepare($query_profits);
+    $stmt_profits->execute();
+    $profit_data = $stmt_profits->fetch(PDO::FETCH_ASSOC) ?: ['total_profits' => 0, 'total_cost_sold' => 0, 'total_sales_value' => 0];
+
+    // Get movement type breakdown (since no sales data exists)
+    $query_movement_types = "SELECT type, COUNT(*) as count, SUM(quantity) as total_quantity
+                            FROM inventory_movements
+                            GROUP BY type";
+    $stmt_movement_types = $db->prepare($query_movement_types);
+    $stmt_movement_types->execute();
+    $movement_types_data = $stmt_movement_types->fetchAll(PDO::FETCH_ASSOC) ?: [];
     ?>
     <div class="flex">
         <!-- Sidebar -->
@@ -86,6 +136,14 @@
                 <a href="statistics.php" class="flex items-center py-3 px-6 text-gray-300 bg-gray-700">
                     <i class="fas fa-chart-bar mr-3"></i> Estadísticas
                 </a>
+                <div class="border-t border-gray-600 mt-6 pt-6">
+                    <div class="px-6 py-2 text-gray-400 text-sm">
+                        <i class="fas fa-user mr-2"></i><?php echo htmlspecialchars($_SESSION['username']); ?>
+                    </div>
+                    <a href="logout.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-red-600 transition-colors duration-200">
+                        <i class="fas fa-sign-out-alt mr-3"></i> Cerrar Sesión
+                    </a>
+                </div>
             </nav>
         </div>
         <!-- /#sidebar -->
@@ -97,15 +155,36 @@
                     <i class="fas fa-bars text-2xl"></i>
                 </button>
                 <h2 class="text-3xl font-bold text-gray-800">Estadísticas y Análisis</h2>
+                <a href="generate_statistics_report.php" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105">
+                    <i class="fas fa-file-pdf mr-2"></i>Generar Reporte PDF
+                </a>
             </header>
 
             <main class="p-6">
                 <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300">
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-600">Total Ventas</h3>
-                            <p class="text-3xl font-bold text-gray-800"><?php echo number_format($total_stats['total_sales'] ?? 0); ?></p>
+                            <h3 class="text-lg font-semibold text-gray-600">Dinero Invertido</h3>
+                            <p class="text-3xl font-bold text-red-600">$<?php echo number_format($investment_data['total_investment'] ?? 0, 2); ?></p>
+                        </div>
+                        <div class="bg-red-500 rounded-full p-4">
+                            <i class="fas fa-dollar-sign text-white text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-600">Ganancias Totales</h3>
+                            <p class="text-3xl font-bold text-green-600">$<?php echo number_format($profit_data['total_profits'] ?? 0, 2); ?></p>
+                        </div>
+                        <div class="bg-green-500 rounded-full p-4">
+                            <i class="fas fa-chart-line text-white text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-600">Valor de Ventas</h3>
+                            <p class="text-3xl font-bold text-blue-600">$<?php echo number_format($profit_data['total_sales_value'] ?? 0, 2); ?></p>
                         </div>
                         <div class="bg-blue-500 rounded-full p-4">
                             <i class="fas fa-shopping-cart text-white text-2xl"></i>
@@ -113,45 +192,86 @@
                     </div>
                     <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300">
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-600">Productos Vendidos</h3>
-                            <p class="text-3xl font-bold text-gray-800"><?php echo number_format($total_stats['total_quantity_sold'] ?? 0); ?></p>
-                        </div>
-                        <div class="bg-green-500 rounded-full p-4">
-                            <i class="fas fa-boxes text-white text-2xl"></i>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-600">Ingresos Totales</h3>
-                            <p class="text-3xl font-bold text-gray-800">$<?php echo number_format($total_stats['total_revenue'] ?? 0, 2); ?></p>
-                        </div>
-                        <div class="bg-yellow-500 rounded-full p-4">
-                            <i class="fas fa-dollar-sign text-white text-2xl"></i>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-600">Productos en Inventario</h3>
-                            <p class="text-3xl font-bold text-gray-800"><?php echo number_format($total_products['total_products'] ?? 0); ?></p>
+                            <h3 class="text-lg font-semibold text-gray-600">Total Movimientos</h3>
+                            <p class="text-3xl font-bold text-gray-800"><?php echo number_format(($movement_stats['entry_count'] ?? 0) + ($movement_stats['exit_count'] ?? 0)); ?></p>
                         </div>
                         <div class="bg-purple-500 rounded-full p-4">
-                            <i class="fas fa-warehouse text-white text-2xl"></i>
+                            <i class="fas fa-exchange-alt text-white text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Financial Summary -->
+                <div class="bg-white rounded-lg shadow-xl p-6 mb-8">
+                    <h3 class="text-2xl font-bold mb-6 text-gray-700">Resumen Financiero Detallado</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="text-center">
+                            <h4 class="text-lg font-semibold text-gray-600 mb-2">Costo de Productos Vendidos</h4>
+                            <p class="text-3xl font-bold text-orange-600">$<?php echo number_format($profit_data['total_cost_sold'] ?? 0, 2); ?></p>
+                        </div>
+                        <div class="text-center">
+                            <h4 class="text-lg font-semibold text-gray-600 mb-2">Ingresos por Ventas</h4>
+                            <p class="text-3xl font-bold text-blue-600">$<?php echo number_format($profit_data['total_sales_value'] ?? 0, 2); ?></p>
+                        </div>
+                        <div class="text-center">
+                            <h4 class="text-lg font-semibold text-gray-600 mb-2">Margen de Ganancia</h4>
+                            <p class="text-3xl font-bold <?php echo (($profit_data['total_sales_value'] ?? 0) > 0) ? 'text-green-600' : 'text-red-600'; ?>">
+                                <?php
+                                $margin = ($profit_data['total_sales_value'] ?? 0) > 0 ?
+                                    (($profit_data['total_profits'] ?? 0) / ($profit_data['total_sales_value'] ?? 1)) * 100 : 0;
+                                echo number_format($margin, 1) . '%';
+                                ?>
+                            </p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Charts Row 1 -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                    <!-- Best Selling Products -->
+                    <!-- Most Moved Products -->
                     <div class="bg-white rounded-lg shadow-xl p-6">
-                        <h3 class="text-2xl font-bold mb-6 text-gray-700">Productos Más Vendidos</h3>
-                        <canvas id="bestSellersChart" width="400" height="300"></canvas>
+                        <h3 class="text-2xl font-bold mb-6 text-gray-700">Productos Más Movidos</h3>
+                        <canvas id="mostMovedChart" width="400" height="300"></canvas>
                     </div>
 
-                    <!-- Sales Over Time -->
+                    <!-- Movements Over Time -->
                     <div class="bg-white rounded-lg shadow-xl p-6">
-                        <h3 class="text-2xl font-bold mb-6 text-gray-700">Ventas por Mes (Últimos 12 meses)</h3>
-                        <canvas id="salesOverTimeChart" width="400" height="300"></canvas>
+                        <h3 class="text-2xl font-bold mb-6 text-gray-700">Movimientos por Mes (Últimos 12 meses)</h3>
+                        <canvas id="movementsOverTimeChart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+
+                <!-- Charts Row 2 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- Movement Types -->
+                    <div class="bg-white rounded-lg shadow-xl p-6">
+                        <h3 class="text-2xl font-bold mb-6 text-gray-700">Tipos de Movimiento</h3>
+                        <canvas id="movementTypesChart" width="400" height="300"></canvas>
+                    </div>
+
+                    <!-- Movement Summary -->
+                    <div class="bg-white rounded-lg shadow-xl p-6">
+                        <h3 class="text-2xl font-bold mb-6 text-gray-700">Resumen de Movimientos</h3>
+                        <div class="space-y-4">
+                            <?php
+                            $total_entries = $movement_stats['total_entries'] ?? 0;
+                            $total_exits = $movement_stats['total_exits'] ?? 0;
+                            $entry_count = $movement_stats['entry_count'] ?? 0;
+                            $exit_count = $movement_stats['exit_count'] ?? 0;
+                            ?>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Total Entradas:</span>
+                                <span class="text-2xl font-bold text-green-600"><?php echo number_format($total_entries); ?> unidades</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Total Salidas:</span>
+                                <span class="text-2xl font-bold text-red-600"><?php echo number_format($total_exits); ?> unidades</span>
+                            </div>
+                            <div class="flex justify-between items-center border-t pt-4">
+                                <span class="text-gray-600 font-semibold">Movimientos de Inventario:</span>
+                                <span class="text-3xl font-bold text-blue-700"><?php echo number_format($entry_count + $exit_count); ?> registros</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -169,18 +289,24 @@
             content.classList.toggle('md:ml-64');
         });
 
-        // Best Sellers Chart
-        const bestSellersCtx = document.getElementById('bestSellersChart').getContext('2d');
-        const bestSellersData = <?php echo json_encode($best_sellers); ?>;
-        new Chart(bestSellersCtx, {
+        // Most Moved Products Chart
+        const mostMovedCtx = document.getElementById('mostMovedChart').getContext('2d');
+        const mostMovedData = <?php echo json_encode($most_moved_products); ?>;
+        new Chart(mostMovedCtx, {
             type: 'bar',
             data: {
-                labels: bestSellersData.map(item => item.name.substring(0, 20) + (item.name.length > 20 ? '...' : '')),
+                labels: mostMovedData.map(item => item.name.substring(0, 20) + (item.name.length > 20 ? '...' : '')),
                 datasets: [{
-                    label: 'Unidades Vendidas',
-                    data: bestSellersData.map(item => item.total_sold),
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
+                    label: 'Entradas',
+                    data: mostMovedData.map(item => item.total_entries),
+                    backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                    borderColor: 'rgba(34, 197, 94, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Salidas',
+                    data: mostMovedData.map(item => item.total_exits),
+                    backgroundColor: 'rgba(239, 68, 68, 0.6)',
+                    borderColor: 'rgba(239, 68, 68, 1)',
                     borderWidth: 1
                 }]
             },
@@ -194,18 +320,25 @@
             }
         });
 
-        // Sales Over Time Chart
-        const salesOverTimeCtx = document.getElementById('salesOverTimeChart').getContext('2d');
-        const salesByMonthData = <?php echo json_encode($sales_by_month); ?>;
-        new Chart(salesOverTimeCtx, {
+        // Movements Over Time Chart
+        const movementsOverTimeCtx = document.getElementById('movementsOverTimeChart').getContext('2d');
+        const movementsByMonthData = <?php echo json_encode($movements_by_month); ?>;
+        new Chart(movementsOverTimeCtx, {
             type: 'line',
             data: {
-                labels: salesByMonthData.map(item => item.month),
+                labels: movementsByMonthData.map(item => item.month),
                 datasets: [{
-                    label: 'Ingresos ($)',
-                    data: salesByMonthData.map(item => item.total_revenue),
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
+                    label: 'Entradas',
+                    data: movementsByMonthData.map(item => item.entries),
+                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                    borderColor: 'rgba(34, 197, 94, 1)',
+                    borderWidth: 2,
+                    fill: true
+                }, {
+                    label: 'Salidas',
+                    data: movementsByMonthData.map(item => item.exits),
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    borderColor: 'rgba(239, 68, 68, 1)',
                     borderWidth: 2,
                     fill: true
                 }]
@@ -215,6 +348,46 @@
                 scales: {
                     y: {
                         beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Movement Types Chart
+        const movementTypesCtx = document.getElementById('movementTypesChart').getContext('2d');
+        const movementTypesData = <?php echo json_encode($movement_types_data); ?>;
+        const typeLabels = movementTypesData.map(item => {
+            switch(item.type) {
+                case 'entry': return 'Entradas';
+                case 'exit': return 'Salidas';
+                default: return item.type;
+            }
+        });
+        const typeColors = movementTypesData.map(item => {
+            switch(item.type) {
+                case 'entry': return 'rgba(34, 197, 94, 0.6)';
+                case 'exit': return 'rgba(239, 68, 68, 0.6)';
+                default: return 'rgba(156, 163, 175, 0.6)';
+            }
+        });
+
+        new Chart(movementTypesCtx, {
+            type: 'doughnut',
+            data: {
+                labels: typeLabels,
+                datasets: [{
+                    label: 'Tipos de Movimiento',
+                    data: movementTypesData.map(item => item.count),
+                    backgroundColor: typeColors,
+                    borderColor: typeColors.map(color => color.replace('0.6', '1')),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
                     }
                 }
             }

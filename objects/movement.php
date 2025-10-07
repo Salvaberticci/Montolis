@@ -9,24 +9,30 @@ class Movement {
     public $quantity;
     public $reason;
     public $date;
+    public $client_name;
+    public $client_contact;
 
     public function __construct($db) {
         $this->conn = $db;
     }
 
     function create() {
-        $query = "INSERT INTO " . $this->table_name . " SET product_id=:product_id, type=:type, quantity=:quantity, reason=:reason";
+        $query = "INSERT INTO " . $this->table_name . " SET product_id=:product_id, type=:type, quantity=:quantity, reason=:reason, client_name=:client_name, client_contact=:client_contact";
         $stmt = $this->conn->prepare($query);
 
         $this->product_id = htmlspecialchars(strip_tags($this->product_id));
         $this->type = htmlspecialchars(strip_tags($this->type));
         $this->quantity = htmlspecialchars(strip_tags($this->quantity));
         $this->reason = htmlspecialchars(strip_tags($this->reason));
+        $this->client_name = htmlspecialchars(strip_tags($this->client_name));
+        $this->client_contact = htmlspecialchars(strip_tags($this->client_contact));
 
         $stmt->bindParam(":product_id", $this->product_id);
         $stmt->bindParam(":type", $this->type);
         $stmt->bindParam(":quantity", $this->quantity);
         $stmt->bindParam(":reason", $this->reason);
+        $stmt->bindParam(":client_name", $this->client_name);
+        $stmt->bindParam(":client_contact", $this->client_contact);
 
         if($stmt->execute()) {
             // Update product quantity
@@ -37,7 +43,7 @@ class Movement {
     }
 
     function read($filters = []) {
-        $query = "SELECT m.id, m.product_id, p.name as product_name, m.type, m.quantity, m.reason, m.date FROM " . $this->table_name . " m JOIN products p ON m.product_id = p.id WHERE 1=1";
+        $query = "SELECT m.id, m.product_id, p.name as product_name, m.type, m.quantity, m.reason, m.date, m.client_name, m.client_contact FROM " . $this->table_name . " m JOIN products p ON m.product_id = p.id WHERE 1=1";
 
         $params = [];
 

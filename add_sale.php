@@ -20,6 +20,14 @@
 <body class="bg-gray-100 font-sans">
     <div id="particles-js"></div>
     <?php
+    session_start();
+
+    // Check if user is logged in
+    if(!isset($_SESSION['user_id'])) {
+        header("Location: login.php");
+        exit();
+    }
+
     include_once 'config/database.php';
     include_once 'objects/sale.php';
     include_once 'objects/product.php';
@@ -36,6 +44,7 @@
         $sale->product_id = $_POST['product_id'];
         $sale->quantity_sold = $_POST['quantity_sold'];
         $sale->sale_type = $_POST['sale_type'];
+        $sale->payment_type = $_POST['payment_type'] ?? 'cash';
 
         // Get product price based on sale type
         $product->id = $_POST['product_id'];
@@ -72,12 +81,29 @@
                 <a href="add_product.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
                     <i class="fas fa-plus mr-3"></i> Añadir Producto
                 </a>
+                <a href="catalog.php" target="_blank" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
+                    <i class="fas fa-book-open mr-3"></i> Ver Catálogo
+                </a>
                 <a href="add_sale.php" class="flex items-center py-3 px-6 text-gray-300 bg-gray-700">
                     <i class="fas fa-cart-plus mr-3"></i> Registrar Venta
                 </a>
                 <a href="sales.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
                     <i class="fas fa-file-invoice-dollar mr-3"></i> Ver Ventas
                 </a>
+                <a href="inventory_movements.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
+                    <i class="fas fa-exchange-alt mr-3"></i> Movimientos
+                </a>
+                <a href="statistics.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
+                    <i class="fas fa-chart-bar mr-3"></i> Estadísticas
+                </a>
+                <div class="border-t border-gray-600 mt-6 pt-6">
+                    <div class="px-6 py-2 text-gray-400 text-sm">
+                        <i class="fas fa-user mr-2"></i><?php echo htmlspecialchars($_SESSION['username']); ?>
+                    </div>
+                    <a href="logout.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-red-600 transition-colors duration-200">
+                        <i class="fas fa-sign-out-alt mr-3"></i> Cerrar Sesión
+                    </a>
+                </div>
             </nav>
         </div>
         <!-- /#sidebar -->
@@ -116,6 +142,13 @@
                                 <select id="sale_type" name="sale_type" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" required>
                                     <option value="direct">Directa</option>
                                     <option value="third_party">Terceros</option>
+                                </select>
+                            </div>
+                            <div class="mb-6">
+                                <label for="payment_type" class="block text-gray-700 text-sm font-bold mb-2">Tipo de Pago</label>
+                                <select id="payment_type" name="payment_type" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" required>
+                                    <option value="cash">Efectivo</option>
+                                    <option value="credit">Crédito</option>
                                 </select>
                             </div>
                             <div class="flex items-center justify-center">
