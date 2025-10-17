@@ -18,7 +18,7 @@ $product = new Product($db);
 $product->id = $_GET['id'];
 
 if($product->delete()){
-    header("Location: index.php");
+    header("Location: dashboard.php");
 }
 else{
     echo "<div>Unable to delete product.</div>";

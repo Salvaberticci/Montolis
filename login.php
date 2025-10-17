@@ -45,7 +45,7 @@
             $_SESSION['username'] = $user->username;
             $_SESSION['role'] = $user->role;
 
-            header("Location: index.php");
+            header("Location: dashboard.php");
             exit();
         } else {
             $error = 'Usuario o contraseña incorrectos';

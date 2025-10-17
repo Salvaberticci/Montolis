@@ -1,48 +1,57 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Servidor: 127.0.0.1
--- Tiempo de generación: 15-09-2025 a las 20:26:47
--- Versión del servidor: 10.4.28-MariaDB
--- Versión de PHP: 8.2.4
+-- Complete Database Setup for Montoli's Inventory System
+-- This file creates all necessary tables and inserts sample data
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
-
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
---
--- Base de datos: `montolis_inventory`
---
+-- Create database if it doesn't exist
+CREATE DATABASE IF NOT EXISTS `montolis_inventory` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `montolis_inventory`;
 
 -- --------------------------------------------------------
+-- Table structure for table `users`
+-- --------------------------------------------------------
 
---
--- Estructura de tabla para la tabla `products`
---
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `role` enum('admin','user') DEFAULT 'admin',
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
-CREATE TABLE `products` (
-  `id` int(11) NOT NULL,
+-- Insert default admin user (password: admin123)
+INSERT INTO `users` (`username`, `password_hash`, `email`, `role`) VALUES
+('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@montolis.com', 'admin');
+
+-- --------------------------------------------------------
+-- Table structure for table `products`
+-- --------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `products` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(128) NOT NULL,
   `description` text NOT NULL,
-  `quantity` int(11) NOT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 0,
   `product_cost` decimal(10,2) NOT NULL DEFAULT 0.00,
   `sale_price` decimal(10,2) NOT NULL DEFAULT 0.00,
   `third_party_sale_price` decimal(10,2) NOT NULL DEFAULT 0.00,
   `third_party_seller_percentage` decimal(5,2) NOT NULL DEFAULT 0.00,
-  `image` varchar(512) DEFAULT NULL
+  `image` varchar(512) DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
---
--- Volcado de datos para la tabla `products`
---
-
+-- Insert sample products
 INSERT INTO `products` (`id`, `name`, `description`, `quantity`, `product_cost`, `sale_price`, `third_party_sale_price`, `third_party_seller_percentage`, `image`) VALUES
 (61, 'TERMO STANLEY', 'Termo de acero inoxidable para mantener bebidas calientes o frías durante horas.', 0, 0.00, 35.00, 0.00, 11.43, '68c18b317d636-imagen_2025-09-10_102904962.png'),
 (62, 'BOLSO PARA STANLEY', 'Bolso diseñado para transportar termos Stanley de forma segura y cómoda.', 0, 0.00, 10.00, 0.00, 20.00, '68c18b4ac2465-imagen_2025-09-10_102930094.png'),
@@ -104,25 +113,49 @@ INSERT INTO `products` (`id`, `name`, `description`, `quantity`, `product_cost`,
 (118, 'PIZARRA MAGICA', 'Pizarra de dibujo reutilizable que se borra con un solo botón, ideal para niños.', 0, 0.00, 6.00, 0.00, 33.33, '68c1895ed558e-imagen_2025-09-10_102118170.png'),
 (119, 'NINTENDO SUP PLAYERS', 'Consola portátil de videojuegos con juegos clásicos preinstalados.', 0, 0.00, 15.00, 0.00, 20.00, '68c1892f61490-D_NQ_NP_2X_742864-MLV78601983895_082024-T.webp');
 
---
--- Índices para tablas volcadas
---
+-- --------------------------------------------------------
+-- Table structure for table `sales`
+-- --------------------------------------------------------
 
---
--- Indices de la tabla `products`
---
-ALTER TABLE `products`
-  ADD PRIMARY KEY (`id`);
+CREATE TABLE IF NOT EXISTS `sales` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL,
+  `quantity_sold` int(11) NOT NULL,
+  `sale_price` decimal(10,2) NOT NULL,
+  `sale_type` enum('direct','third_party') NOT NULL,
+  `sale_date` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `payment_type` enum('cash','credit') DEFAULT 'cash',
+  `payment_status` enum('paid','pending','partial') DEFAULT 'paid',
+  `remaining_balance` decimal(10,2) DEFAULT 0.00,
+  PRIMARY KEY (`id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `sales_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
---
--- AUTO_INCREMENT de las tablas volcadas
---
+-- --------------------------------------------------------
+-- Table structure for table `inventory_movements`
+-- --------------------------------------------------------
 
---
--- AUTO_INCREMENT de la tabla `products`
---
-ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
+CREATE TABLE IF NOT EXISTS `inventory_movements` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL,
+  `type` enum('entry','exit') NOT NULL,
+  `quantity` int(11) NOT NULL,
+  `reason` varchar(255) NOT NULL,
+  `date` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `client_name` varchar(100) DEFAULT NULL,
+  `client_contact` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `inventory_movements_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+-- Set AUTO_INCREMENT values
+ALTER TABLE `products` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
+ALTER TABLE `users` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+ALTER TABLE `sales` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+ALTER TABLE `inventory_movements` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -44,7 +44,7 @@
                 <img src="images/logo.png" alt="Montoli's Logo" class="h-10 mr-3"> Montoli's
             </div>
             <nav class="mt-10">
-                <a href="index.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
+                <a href="dashboard.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
                     <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
                 </a>
                 <a href="add_product.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
