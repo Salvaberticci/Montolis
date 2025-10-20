@@ -172,7 +172,7 @@
                         <div id="single-product-section" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="product_id" class="block text-sm font-medium text-gray-700">Producto</label>
-                                <select name="product_id" id="product_id" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+                                <select name="product_id" id="product_id" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required style="display: block;">
                                     <option value="">Seleccionar producto</option>
                                     <?php
                                     $stmt = $product->read();
