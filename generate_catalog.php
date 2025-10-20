@@ -49,7 +49,7 @@ class CatalogPDF extends TCPDF {
                 $this->Cell(20, 8, 'Stock', 0, 0, 'C');
                 break;
             case 'seller':
-                $this->Cell(30, 8, 'Precio Venta', 0, 0, 'C');
+                $this->Cell(30, 8, 'Precio Mayor', 0, 0, 'C');
                 $this->Cell(30, 8, 'Comisión', 0, 0, 'C');
                 break;
             case 'customer':
@@ -128,7 +128,7 @@ try {
                 $pdf->MultiCell(20, $row_height, $p['quantity'], 0, 'C', false, 1, 175, $current_y, true, 0, false, true, $row_height, 'M');
                 break;
             case 'seller':
-                $pdf->MultiCell(30, $row_height, '$' . $p['third_party_sale_price'], 0, 'C', false, 0, 135, $current_y, true, 0, false, true, $row_height, 'M');
+                $pdf->MultiCell(30, $row_height, '$' . $p['wholesale_price'], 0, 'C', false, 0, 135, $current_y, true, 0, false, true, $row_height, 'M');
                 $pdf->MultiCell(30, $row_height, $p['third_party_seller_percentage'] . '%', 0, 'C', false, 1, 165, $current_y, true, 0, false, true, $row_height, 'M');
                 break;
             case 'customer':

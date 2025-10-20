@@ -71,8 +71,8 @@ $stmt_total_products = $db->prepare($query_total_products);
 $stmt_total_products->execute();
 $total_products = $stmt_total_products->fetch(PDO::FETCH_ASSOC) ?: ['total_products' => 0, 'total_stock' => 0];
 
-// Calculate total stock value
-$query_stock_value = "SELECT SUM(sale_price * quantity) as total_stock_value FROM products";
+// Calculate total stock value (using wholesale prices for sellers)
+$query_stock_value = "SELECT SUM(wholesale_price * quantity) as total_stock_value FROM products";
 $stmt_stock_value = $db->prepare($query_stock_value);
 $stmt_stock_value->execute();
 $stock_data = $stmt_stock_value->fetch(PDO::FETCH_ASSOC) ?: ['total_stock_value' => 0];
@@ -83,17 +83,25 @@ $stmt_total_investment = $db->prepare($query_total_investment);
 $stmt_total_investment->execute();
 $investment_data = $stmt_total_investment->fetch(PDO::FETCH_ASSOC) ?: ['total_investment' => 0];
 
-// Calculate profits from exits (sales) - using product sale_price vs product_cost
+// Calculate profits from exits (sales) - using wholesale_price vs product_cost for sellers
 $query_profits = "SELECT
-                    SUM((p.sale_price - p.product_cost) * m.quantity) as total_profits,
+                    SUM((p.wholesale_price - p.product_cost) * m.quantity) as total_profits,
                     SUM(p.product_cost * m.quantity) as total_cost_sold,
-                    SUM(p.sale_price * m.quantity) as total_sales_value
+                    SUM(p.wholesale_price * m.quantity) as total_sales_value
                   FROM inventory_movements m
                   LEFT JOIN products p ON m.product_id = p.id
                   WHERE m.type = 'exit'";
 $stmt_profits = $db->prepare($query_profits);
 $stmt_profits->execute();
 $profit_data = $stmt_profits->fetch(PDO::FETCH_ASSOC) ?: ['total_profits' => 0, 'total_cost_sold' => 0, 'total_sales_value' => 0];
+// Calculate total IVA spent (IVA from all inventory exits/sales using wholesale prices)
+$query_total_iva = "SELECT SUM((p.wholesale_price * m.quantity) * 0.16) as total_iva_spent
+                   FROM inventory_movements m
+                   LEFT JOIN products p ON m.product_id = p.id
+                   WHERE m.type = 'exit'";
+$stmt_total_iva = $db->prepare($query_total_iva);
+$stmt_total_iva->execute();
+$iva_data = $stmt_total_iva->fetch(PDO::FETCH_ASSOC) ?: ['total_iva_spent' => 0];
 
 // Get most moved products
 $query_most_moved = "SELECT p.name,
@@ -149,6 +157,9 @@ $pdf->Cell(0, 8, '$' . number_format($profit_data['total_sales_value'] ?? 0, 2),
 
 $pdf->Cell(100, 8, 'Valor del Stock:', 0, 0);
 $pdf->Cell(0, 8, '$' . number_format($stock_data['total_stock_value'] ?? 0, 2), 0, 1);
+
+$pdf->Cell(100, 8, 'IVA Pagado:', 0, 0);
+$pdf->Cell(0, 8, '$' . number_format($iva_data['total_iva_spent'] ?? 0, 2), 0, 1);
 
 $pdf->Cell(100, 8, 'Costo de Productos Vendidos:', 0, 0);
 $pdf->Cell(0, 8, '$' . number_format($profit_data['total_cost_sold'] ?? 0, 2), 0, 1);
