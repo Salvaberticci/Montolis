@@ -164,6 +164,15 @@
     $stmt_stock_value->execute();
     $stock_data = $stmt_stock_value->fetch(PDO::FETCH_ASSOC) ?: ['total_stock_value' => 0];
 
+    // Calculate total IVA spent (IVA from all inventory exits/sales)
+    $query_total_iva = "SELECT SUM((p.sale_price * m.quantity) * 0.16) as total_iva_spent
+                       FROM inventory_movements m
+                       LEFT JOIN products p ON m.product_id = p.id
+                       WHERE m.type = 'exit'";
+    $stmt_total_iva = $db->prepare($query_total_iva);
+    $stmt_total_iva->execute();
+    $iva_data = $stmt_total_iva->fetch(PDO::FETCH_ASSOC) ?: ['total_iva_spent' => 0];
+
     // Get movement type breakdown (since no sales data exists)
     $query_movement_types = "SELECT type, COUNT(*) as count, SUM(quantity) as total_quantity
                             FROM inventory_movements
@@ -220,7 +229,7 @@
 
             <main class="p-6">
                 <!-- Summary Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 mb-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6 mb-8">
                     <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative">
                         <div class="flex-1">
                             <div class="flex items-center mb-2">
@@ -279,6 +288,21 @@
                         </div>
                         <div class="bg-indigo-500 rounded-full p-3 sm:p-4 flex-shrink-0">
                             <i class="fas fa-warehouse text-white text-xl sm:text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative">
+                        <div class="flex-1">
+                            <div class="flex items-center mb-2">
+                                <h3 class="text-base sm:text-lg font-semibold text-gray-600">IVA Pagado</h3>
+                                <div class="custom-tooltip ml-2">
+                                    <i class="fas fa-info-circle info-icon text-gray-400 text-sm"></i>
+                                    <span class="tooltip-text">Total del IVA (16%) pagado en todas las ventas realizadas</span>
+                                </div>
+                            </div>
+                            <p class="text-2xl sm:text-3xl font-bold text-orange-600">$<?php echo number_format($iva_data['total_iva_spent'] ?? 0, 2); ?></p>
+                        </div>
+                        <div class="bg-orange-500 rounded-full p-3 sm:p-4 flex-shrink-0">
+                            <i class="fas fa-calculator text-white text-xl sm:text-2xl"></i>
                         </div>
                     </div>
                     <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative sm:col-span-2 lg:col-span-1">

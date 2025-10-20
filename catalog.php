@@ -65,7 +65,10 @@
                 extract($row);
                 $image_path = "uploads/{$image}";
                 $image_src = ($image && file_exists($image_path)) ? $image_path : "images/placeholder.png";
-                $whatsapp_message = urlencode("Hola, me interesa este producto:\n\n{$name}\n{$description}\nPrecio: \${$sale_price}\nPrecio al mayor: \${$wholesale_price}");
+                $iva_rate = 0.16;
+                $price_with_iva = $sale_price * (1 + $iva_rate);
+                $wholesale_with_iva = $wholesale_price * (1 + $iva_rate);
+                $whatsapp_message = urlencode("Hola, me interesa este producto:\n\n{$name}\n{$description}\nPrecio: \${$price_with_iva} (incluye IVA 16%)\nPrecio al mayor: \${$wholesale_with_iva} (incluye IVA 16%)");
                 $whatsapp_url = "https://wa.me/584163723527?text={$whatsapp_message}";
                 echo "<div class='product-card bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out'>";
                 echo "<img src='{$image_src}' alt='{$name}' class='w-full h-48 object-cover cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")'>";
@@ -237,7 +240,10 @@
             document.getElementById('modal-title').textContent = name;
             document.getElementById('modal-description').textContent = description;
             document.getElementById('modal-image').src = image;
-            document.getElementById('modal-price').innerHTML = '$' + price + '<br><small class="text-purple-600">Mayor: $' + wholesalePrice + '</small>';
+            const ivaRate = 0.16;
+            const priceWithIva = (parseFloat(price) * (1 + ivaRate)).toFixed(2);
+            const wholesaleWithIva = (parseFloat(wholesalePrice) * (1 + ivaRate)).toFixed(2);
+            document.getElementById('modal-price').innerHTML = '$' + priceWithIva + ' (IVA incluido)<br><small class="text-purple-600">Mayor: $' + wholesaleWithIva + ' (IVA incluido)</small>';
             document.getElementById('whatsapp-btn').href = whatsappUrl;
             document.getElementById('product-modal').classList.remove('hidden');
             document.getElementById('product-modal').classList.add('flex');
@@ -421,17 +427,23 @@
             }
 
             let message = 'Hola, me interesan los siguientes productos:\n\n';
-            let total = 0;
+            let subtotal = 0;
+            const ivaRate = 0.16;
 
             cart.forEach((item, index) => {
                 const quantity = item.quantity || 1;
                 const priceType = item.isWholesale ? ' (precio al mayor)' : '';
-                const itemTotal = parseFloat(item.price) * quantity;
-                message += `${index + 1}. ${item.name} - $${item.price}${priceType} x ${quantity} = $${itemTotal.toFixed(2)}\n`;
-                total += itemTotal;
+                const itemPrice = parseFloat(item.price);
+                const itemPriceWithIva = itemPrice * (1 + ivaRate);
+                const itemTotal = itemPriceWithIva * quantity;
+                message += `${index + 1}. ${item.name} - $${itemPriceWithIva.toFixed(2)}${priceType} x ${quantity} = $${itemTotal.toFixed(2)} (IVA incluido)\n`;
+                subtotal += itemPrice * quantity;
             });
 
-            message += `\nTotal: $${total.toFixed(2)}`;
+            const ivaAmount = subtotal * ivaRate;
+            const total = subtotal + ivaAmount;
+
+            message += `\nSubtotal: $${subtotal.toFixed(2)}\nIVA (16%): $${ivaAmount.toFixed(2)}\nTotal: $${total.toFixed(2)}`;
 
             const whatsappUrl = `https://wa.me/584163723527?text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
