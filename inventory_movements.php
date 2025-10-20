@@ -70,45 +70,55 @@
         $movement->client_contact = $_POST['client_contact'] ?? '';
 
         if($movement->type == 'entry') {
-            // Single product entry
-            $movement->product_id = $_POST['product_id'];
-            $movement->quantity = $_POST['quantity'];
-
-            if($movement->create()) {
-                $notification = 'Movimiento registrado exitosamente.';
-                $notification_type = 'success';
-            } else {
-                $notification = 'Error al registrar el movimiento.';
+            // Single product entry - validate required fields
+            if(empty($_POST['product_id']) || empty($_POST['quantity'])) {
+                $notification = 'Por favor complete todos los campos requeridos.';
                 $notification_type = 'error';
+            } else {
+                $movement->product_id = $_POST['product_id'];
+                $movement->quantity = $_POST['quantity'];
+
+                if($movement->create()) {
+                    $notification = 'Movimiento registrado exitosamente.';
+                    $notification_type = 'success';
+                } else {
+                    $notification = 'Error al registrar el movimiento.';
+                    $notification_type = 'error';
+                }
             }
         } else {
             // Multiple products exit
             $products = $_POST['products'] ?? [];
-            $success_count = 0;
-            $error_count = 0;
+            if(empty($products)) {
+                $notification = 'Por favor agregue al menos un producto.';
+                $notification_type = 'error';
+            } else {
+                $success_count = 0;
+                $error_count = 0;
 
-            foreach($products as $product_data) {
-                if(!empty($product_data['product_id']) && !empty($product_data['quantity'])) {
-                    $movement->product_id = $product_data['product_id'];
-                    $movement->quantity = $product_data['quantity'];
+                foreach($products as $product_data) {
+                    if(!empty($product_data['product_id']) && !empty($product_data['quantity'])) {
+                        $movement->product_id = $product_data['product_id'];
+                        $movement->quantity = $product_data['quantity'];
 
-                    if($movement->create()) {
-                        $success_count++;
-                    } else {
-                        $error_count++;
+                        if($movement->create()) {
+                            $success_count++;
+                        } else {
+                            $error_count++;
+                        }
                     }
                 }
-            }
 
-            if($success_count > 0) {
-                $notification = "Se registraron {$success_count} movimientos exitosamente.";
-                if($error_count > 0) {
-                    $notification .= " {$error_count} movimientos fallaron.";
+                if($success_count > 0) {
+                    $notification = "Se registraron {$success_count} movimientos exitosamente.";
+                    if($error_count > 0) {
+                        $notification .= " {$error_count} movimientos fallaron.";
+                    }
+                    $notification_type = $error_count > 0 ? 'warning' : 'success';
+                } else {
+                    $notification = 'Error al registrar los movimientos.';
+                    $notification_type = 'error';
                 }
-                $notification_type = $error_count > 0 ? 'warning' : 'success';
-            } else {
-                $notification = 'Error al registrar los movimientos.';
-                $notification_type = 'error';
             }
         }
     }
@@ -172,7 +182,7 @@
                         <div id="single-product-section" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="product_id" class="block text-sm font-medium text-gray-700">Producto</label>
-                                <select name="product_id" id="product_id" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required style="display: block;">
+                                <select name="product_id" id="product_id" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" style="display: block;">
                                     <option value="">Seleccionar producto</option>
                                     <?php
                                     $stmt = $product->read();
@@ -184,7 +194,7 @@
                             </div>
                             <div>
                                 <label for="quantity" class="block text-sm font-medium text-gray-700">Cantidad</label>
-                                <input type="number" name="quantity" id="quantity" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required min="1">
+                                <input type="number" name="quantity" id="quantity" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" min="1">
                             </div>
                         </div>
 
