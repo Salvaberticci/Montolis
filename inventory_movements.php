@@ -22,6 +22,10 @@
     <?php
     session_start();
 
+    // Enable error reporting for debugging
+    // error_reporting(E_ALL);
+    // ini_set('display_errors', 1);
+
     // Check if user is logged in
     if(!isset($_SESSION['user_id'])) {
         header("Location: login.php");
@@ -64,6 +68,9 @@
     }
 
     if($_POST) {
+        // Debug: Log POST data
+        error_log("POST data: " . print_r($_POST, true));
+
         $movement->type = $_POST['type'];
         $movement->reason = $_POST['reason'];
         $movement->client_name = $_POST['client_name'] ?? '';
@@ -72,6 +79,7 @@
         if($movement->type == 'entry') {
             // Multiple products entry
             $products = $_POST['entry_products'] ?? [];
+            error_log("Entry products: " . print_r($products, true));
             if(empty($products)) {
                 $notification = 'Por favor agregue al menos un producto.';
                 $notification_type = 'error';
@@ -80,7 +88,7 @@
                 $error_count = 0;
 
                 foreach($products as $product_data) {
-                    if(!empty($product_data['product_id']) && !empty($product_data['quantity'])) {
+                    if(!empty($product_data['product_id']) && !empty($product_data['quantity']) && $product_data['quantity'] > 0) {
                         $movement->product_id = $product_data['product_id'];
                         $movement->quantity = $product_data['quantity'];
 
@@ -106,6 +114,7 @@
         } else {
             // Multiple products exit
             $products = $_POST['products'] ?? [];
+            error_log("Exit products: " . print_r($products, true));
             if(empty($products)) {
                 $notification = 'Por favor agregue al menos un producto.';
                 $notification_type = 'error';
@@ -114,7 +123,7 @@
                 $error_count = 0;
 
                 foreach($products as $product_data) {
-                    if(!empty($product_data['product_id']) && !empty($product_data['quantity'])) {
+                    if(!empty($product_data['product_id']) && !empty($product_data['quantity']) && $product_data['quantity'] > 0) {
                         $movement->product_id = $product_data['product_id'];
                         $movement->quantity = $product_data['quantity'];
 
@@ -535,6 +544,11 @@
             }
         });
 
+        // Initialize the form on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleProductSection();
+        });
+
         <?php if($notification): ?>
         showNotification('<?php echo $notification; ?>', '<?php echo $notification_type; ?>');
         <?php endif; ?>
@@ -564,9 +578,37 @@
             if(type === 'exit') {
                 entrySection.classList.add('hidden');
                 multipleSection.classList.remove('hidden');
+                // Remove required attribute from entry products
+                document.querySelectorAll('#entry-products-container select[required]').forEach(select => {
+                    select.removeAttribute('required');
+                });
+                document.querySelectorAll('#entry-products-container input[required]').forEach(input => {
+                    input.removeAttribute('required');
+                });
+                // Add required attribute to exit products
+                document.querySelectorAll('#products-container select').forEach(select => {
+                    select.setAttribute('required', 'required');
+                });
+                document.querySelectorAll('#products-container input[type="number"]').forEach(input => {
+                    input.setAttribute('required', 'required');
+                });
             } else {
                 multipleSection.classList.add('hidden');
                 entrySection.classList.remove('hidden');
+                // Remove required attribute from exit products
+                document.querySelectorAll('#products-container select[required]').forEach(select => {
+                    select.removeAttribute('required');
+                });
+                document.querySelectorAll('#products-container input[required]').forEach(input => {
+                    input.removeAttribute('required');
+                });
+                // Add required attribute to entry products
+                document.querySelectorAll('#entry-products-container select').forEach(select => {
+                    select.setAttribute('required', 'required');
+                });
+                document.querySelectorAll('#entry-products-container input[type="number"]').forEach(input => {
+                    input.setAttribute('required', 'required');
+                });
             }
         }
 

@@ -37,9 +37,12 @@ class Movement {
         if($stmt->execute()) {
             // Update product quantity
             $this->updateProductQuantity();
+            error_log("Movement created successfully for product_id: " . $this->product_id . ", type: " . $this->type . ", quantity: " . $this->quantity);
             return true;
+        } else {
+            error_log("Failed to create movement: " . print_r($stmt->errorInfo(), true));
+            return false;
         }
-        return false;
     }
 
     function read($filters = []) {
@@ -142,7 +145,11 @@ class Movement {
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":quantity", $this->quantity);
         $stmt->bindParam(":product_id", $this->product_id);
-        $stmt->execute();
+        if($stmt->execute()) {
+            error_log("Product quantity updated for product_id: " . $this->product_id . ", type: " . $this->type . ", quantity: " . $this->quantity);
+        } else {
+            error_log("Failed to update product quantity: " . print_r($stmt->errorInfo(), true));
+        }
     }
 }
 ?>

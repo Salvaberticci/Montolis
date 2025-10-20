@@ -82,7 +82,7 @@
                 echo "<button onclick='quickAddToCart(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\", 1)' class='flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center text-sm'>";
                 echo "<i class='fas fa-cart-plus mr-1'></i> Agregar 1";
                 echo "</button>";
-                echo "<button onclick='quickAddToCart(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\", 6)' class='flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center text-sm'>";
+                echo "<button onclick='openWholesaleModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")' class='flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center text-sm'>";
                 echo "<i class='fas fa-shopping-bag mr-1'></i> Mayor (6+)";
                 echo "</button>";
                 echo "</div>";
@@ -151,7 +151,7 @@
                     <button onclick="addToCart(1)" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center">
                         <i class="fas fa-cart-plus mr-2"></i> Agregar 1
                     </button>
-                    <button onclick="addToCart(6)" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center">
+                    <button onclick="openWholesaleModalFromModal()" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center">
                         <i class="fas fa-shopping-bag mr-2"></i> Mayor (6+)
                     </button>
                 </div>
@@ -184,6 +184,27 @@
                         <i class="fab fa-whatsapp mr-2"></i> Enviar Pedido por WhatsApp
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wholesale Quantity Modal -->
+    <div id="wholesale-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-2xl max-w-sm mx-auto overflow-hidden">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">Cantidad al Mayor</h2>
+                    <button onclick="closeWholesaleModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="mb-4">
+                    <label for="wholesale-quantity" class="block text-sm font-medium text-gray-700 mb-2">Cantidad (mínimo 6):</label>
+                    <input type="number" id="wholesale-quantity" min="6" value="6" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                </div>
+                <button onclick="addWholesaleToCart()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center">
+                    <i class="fas fa-shopping-bag mr-2"></i> Agregar al Carrito
+                </button>
             </div>
         </div>
     </div>
@@ -256,6 +277,57 @@
             closeModal();
             const message = quantity >= 6 ? `Agregado ${quantity} unidades al mayor al carrito` : `Producto agregado al carrito`;
             showNotification(message, 'success');
+        }
+
+        function openWholesaleModal(name, description, image, price, wholesalePrice, whatsappUrl) {
+            currentProduct = { name, description, image, price, wholesalePrice, whatsappUrl };
+            document.getElementById('wholesale-modal').classList.remove('hidden');
+            document.getElementById('wholesale-modal').classList.add('flex');
+            anime({
+                targets: '#wholesale-modal .bg-white',
+                scale: [0.7, 1],
+                opacity: [0, 1],
+                duration: 300,
+                easing: 'easeOutExpo'
+            });
+        }
+
+        function openWholesaleModalFromModal() {
+            closeModal();
+            openWholesaleModal(currentProduct.name, currentProduct.description, currentProduct.image, currentProduct.price, currentProduct.wholesalePrice, currentProduct.whatsappUrl);
+        }
+
+        function closeWholesaleModal() {
+            anime({
+                targets: '#wholesale-modal .bg-white',
+                scale: [1, 0.7],
+                opacity: [1, 0],
+                duration: 300,
+                easing: 'easeInExpo',
+                complete: () => {
+                    document.getElementById('wholesale-modal').classList.add('hidden');
+                    document.getElementById('wholesale-modal').classList.remove('flex');
+                }
+            });
+        }
+
+        function addWholesaleToCart() {
+            const quantity = parseInt(document.getElementById('wholesale-quantity').value);
+            if (quantity < 6) {
+                showNotification('La cantidad mínima para compra al mayor es 6 unidades', 'error');
+                return;
+            }
+            const product = {
+                ...currentProduct,
+                price: currentProduct.wholesalePrice,
+                quantity,
+                isWholesale: true
+            };
+            cart.push(product);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            closeWholesaleModal();
+            showNotification(`Agregado ${quantity} unidades al mayor al carrito`, 'success');
         }
 
         function quickAddToCart(name, description, image, price, wholesalePrice, whatsappUrl, quantity = 1) {
@@ -423,6 +495,12 @@
         document.getElementById('cart-modal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeCart();
+            }
+        });
+
+        document.getElementById('wholesale-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeWholesaleModal();
             }
         });
     </script>
