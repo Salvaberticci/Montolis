@@ -104,7 +104,7 @@
         <!-- Page Content -->
         <div id="content" class="flex-1 md:ml-64 transition-all duration-300 ease-in-out">
             <header class="bg-white shadow-md p-4 flex justify-between items-center">
-                <button id="menu-toggle" class="md:hidden text-gray-600">
+                <button id="menu-toggle" class="md:hidden text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors" style="min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-bars text-2xl"></i>
                 </button>
                 <h2 class="text-3xl font-bold text-gray-800">Editar Movimiento</h2>
@@ -126,10 +126,10 @@
                         <form action="edit_movement.php" method="post">
                             <input type="hidden" name="id" value="<?php echo $movement->id; ?>">
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                 <div>
                                     <label for="product_id" class="block text-sm font-medium text-gray-700">Producto</label>
-                                    <select name="product_id" id="product_id" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+                                    <select name="product_id" id="product_id" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" required style="min-height: 44px;">
                                         <option value="">Seleccionar producto</option>
                                         <?php
                                         $stmt = $product->read();
@@ -142,26 +142,26 @@
                                 </div>
                                 <div>
                                     <label for="type" class="block text-sm font-medium text-gray-700">Tipo</label>
-                                    <select name="type" id="type" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+                                    <select name="type" id="type" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" required style="min-height: 44px;">
                                         <option value="entry" <?php echo ($movement->type == 'entry') ? 'selected' : ''; ?>>Entrada</option>
                                         <option value="exit" <?php echo ($movement->type == 'exit') ? 'selected' : ''; ?>>Salida</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label for="quantity" class="block text-sm font-medium text-gray-700">Cantidad</label>
-                                    <input type="number" name="quantity" id="quantity" value="<?php echo $movement->quantity; ?>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required min="1">
+                                    <input type="number" name="quantity" id="quantity" value="<?php echo $movement->quantity; ?>" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" required min="1" style="min-height: 44px;">
                                 </div>
                                 <div>
                                     <label for="reason" class="block text-sm font-medium text-gray-700">Razón</label>
-                                    <input type="text" name="reason" id="reason" value="<?php echo htmlspecialchars($movement->reason); ?>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+                                    <input type="text" name="reason" id="reason" value="<?php echo htmlspecialchars($movement->reason); ?>" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" required style="min-height: 44px;">
                                 </div>
                                 <div>
                                     <label for="client_name" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label>
-                                    <input type="text" name="client_name" id="client_name" value="<?php echo htmlspecialchars($movement->client_name); ?>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    <input type="text" name="client_name" id="client_name" value="<?php echo htmlspecialchars($movement->client_name); ?>" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" style="min-height: 44px;">
                                 </div>
                                 <div>
                                     <label for="client_contact" class="block text-sm font-medium text-gray-700">Contacto del Cliente</label>
-                                    <input type="text" name="client_contact" id="client_contact" value="<?php echo htmlspecialchars($movement->client_contact); ?>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Teléfono o email">
+                                    <input type="text" name="client_contact" id="client_contact" value="<?php echo htmlspecialchars($movement->client_contact); ?>" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" placeholder="Teléfono o email" style="min-height: 44px;">
                                 </div>
                             </div>
                             <div class="mt-6 flex gap-4">
@@ -184,9 +184,45 @@
         const sidebar = document.getElementById('sidebar');
         const content = document.getElementById('content');
 
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('-translate-x-full');
-            content.classList.toggle('md:ml-64');
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('-translate-x-full');
+                content.classList.toggle('md:ml-64');
+            });
+        }
+
+        // Swipe gesture for mobile sidebar
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+
+        document.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            currentX = e.touches[0].clientX;
+            const diff = currentX - startX;
+
+            // Only handle swipe from left edge
+            if (startX < 20 && diff > 50) {
+                sidebar.classList.remove('-translate-x-full');
+                content.classList.add('md:ml-64');
+            }
+        });
+
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        // Close sidebar when clicking outside on mobile
+        content.addEventListener('click', () => {
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+                content.classList.remove('md:ml-64');
+            }
         });
 
         // Animation with Anime.js

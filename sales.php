@@ -80,14 +80,75 @@
         <!-- Page Content -->
         <div id="content" class="flex-1 md:ml-64 transition-all duration-300 ease-in-out">
             <header class="bg-white shadow-md p-4 flex justify-between items-center">
-                <button id="menu-toggle" class="md:hidden text-gray-600">
+                <button id="menu-toggle" class="md:hidden text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors" style="min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-bars text-2xl"></i>
                 </button>
                 <h2 class="text-3xl font-bold text-gray-800">Listado de Ventas</h2>
             </header>
 
             <main class="p-6">
-                <div class="overflow-x-auto bg-white rounded-lg shadow-xl">
+                <!-- Mobile Card View -->
+                <div class="block md:hidden space-y-4">
+                    <?php
+                    $stmt_mobile = $sale->read();
+                    while ($row = $stmt_mobile->fetch(PDO::FETCH_ASSOC)){
+                        extract($row);
+
+                        // Format payment type
+                        $payment_type_label = ($payment_type == 'cash') ? 'Efectivo' : 'Crédito';
+
+                        // Format payment status with colors
+                        $status_color = '';
+                        $status_label = '';
+                        $bg_color = '';
+                        switch($payment_status) {
+                            case 'paid':
+                                $status_color = 'text-green-600';
+                                $status_label = 'Pagado';
+                                $bg_color = 'bg-green-50 border-green-200';
+                                break;
+                            case 'pending':
+                                $status_color = 'text-red-600';
+                                $status_label = 'Pendiente';
+                                $bg_color = 'bg-red-50 border-red-200';
+                                break;
+                            case 'partial':
+                                $status_color = 'text-yellow-600';
+                                $status_label = 'Parcial';
+                                $bg_color = 'bg-yellow-50 border-yellow-200';
+                                break;
+                            default:
+                                $status_color = 'text-gray-600';
+                                $status_label = $payment_status;
+                                $bg_color = 'bg-gray-50 border-gray-200';
+                        }
+
+                        echo "<div class='{$bg_color} border rounded-lg p-4'>";
+                        echo "<div class='flex justify-between items-start mb-3'>";
+                        echo "<div class='flex-1'>";
+                        echo "<h4 class='font-bold text-lg text-gray-900'>{$product_name}</h4>";
+                        echo "<p class='{$status_color} font-semibold'>{$status_label}</p>";
+                        echo "</div>";
+                        echo "</div>";
+                        echo "<div class='grid grid-cols-2 gap-4 mb-3'>";
+                        echo "<div><span class='text-gray-500 text-sm'>Cantidad:</span><br><span class='font-semibold'>{$quantity_sold}</span></div>";
+                        echo "<div><span class='text-gray-500 text-sm'>Precio:</span><br><span class='font-semibold text-green-600'>&#36;{$sale_price}</span></div>";
+                        echo "<div><span class='text-gray-500 text-sm'>Pago:</span><br><span class='font-semibold'>{$payment_type_label}</span></div>";
+                        echo "<div><span class='text-gray-500 text-sm'>Fecha:</span><br><span class='font-semibold'>{$sale_date}</span></div>";
+                        echo "</div>";
+                        if($remaining_balance > 0) {
+                            echo "<div class='pt-3 border-t border-gray-300'>";
+                            echo "<span class='text-gray-500 text-sm'>Saldo Pendiente:</span><br>";
+                            echo "<span class='font-semibold text-red-600'>&#36;" . number_format($remaining_balance, 2) . "</span>";
+                            echo "</div>";
+                        }
+                        echo "</div>";
+                    }
+                    ?>
+                </div>
+
+                <!-- Desktop Table View -->
+                <div class="hidden md:block overflow-x-auto bg-white rounded-lg shadow-xl">
                     <table class="min-w-full">
                         <thead class="bg-gray-200">
                             <tr>
@@ -154,9 +215,45 @@
         const sidebar = document.getElementById('sidebar');
         const content = document.getElementById('content');
 
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('-translate-x-full');
-            content.classList.toggle('md:ml-64');
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('-translate-x-full');
+                content.classList.toggle('md:ml-64');
+            });
+        }
+
+        // Swipe gesture for mobile sidebar
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+
+        document.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            currentX = e.touches[0].clientX;
+            const diff = currentX - startX;
+
+            // Only handle swipe from left edge
+            if (startX < 20 && diff > 50) {
+                sidebar.classList.remove('-translate-x-full');
+                content.classList.add('md:ml-64');
+            }
+        });
+
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        // Close sidebar when clicking outside on mobile
+        content.addEventListener('click', () => {
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+                content.classList.remove('md:ml-64');
+            }
         });
 
         // Animations with Anime.js

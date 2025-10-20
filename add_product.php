@@ -110,7 +110,7 @@
         <!-- Page Content -->
         <div id="content" class="flex-1 md:ml-64 transition-all duration-300 ease-in-out">
             <header class="bg-white shadow-md p-4 flex justify-between items-center">
-                <button id="menu-toggle" class="md:hidden text-gray-600">
+                <button id="menu-toggle" class="md:hidden text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors" style="min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-bars text-2xl"></i>
                 </button>
                 <h2 class="text-3xl font-bold text-gray-800">Añadir Producto</h2>
@@ -129,43 +129,43 @@
                                 <label for="descripcion" class="block text-gray-700 text-sm font-bold mb-2">Descripción</label>
                                 <textarea class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" id="descripcion" name="descripcion" rows="4" required></textarea>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
                                 <div>
                                     <label for="cantidad" class="block text-gray-700 text-sm font-bold mb-2">Cantidad</label>
-                                    <input type="number" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" id="cantidad" name="cantidad" required>
+                                    <input type="number" class="shadow appearance-none border rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200 text-base" id="cantidad" name="cantidad" required style="min-height: 44px;">
                                 </div>
                                 <div>
                                     <label for="product_cost" class="block text-gray-700 text-sm font-bold mb-2">Costo del Producto (USD)</label>
-                                    <input type="text" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" id="product_cost" name="product_cost" required>
+                                    <input type="text" class="shadow appearance-none border rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200 text-base" id="product_cost" name="product_cost" required style="min-height: 44px;">
                                 </div>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
                                 <div>
                                     <label for="sale_price" class="block text-gray-700 text-sm font-bold mb-2">Precio de Venta (USD)</label>
-                                    <input type="text" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" id="sale_price" name="sale_price" required>
+                                    <input type="text" class="shadow appearance-none border rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200 text-base" id="sale_price" name="sale_price" required style="min-height: 44px;">
                                 </div>
                                 <div>
                                     <label for="wholesale_price" class="block text-gray-700 text-sm font-bold mb-2">Precio al Mayor (USD)</label>
-                                    <input type="text" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" id="wholesale_price" name="wholesale_price" required>
+                                    <input type="text" class="shadow appearance-none border rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200 text-base" id="wholesale_price" name="wholesale_price" required style="min-height: 44px;">
                                 </div>
-                                <div>
+                                <div class="sm:col-span-2 lg:col-span-1">
                                     <label for="third_party_sale_price" class="block text-gray-700 text-sm font-bold mb-2">Precio de Venta para Terceros (USD)</label>
-                                    <input type="text" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" id="third_party_sale_price" name="third_party_sale_price" required>
+                                    <input type="text" class="shadow appearance-none border rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200 text-base" id="third_party_sale_price" name="third_party_sale_price" required style="min-height: 44px;">
                                 </div>
                             </div>
                              <div class="mb-6">
-                                <label for="third_party_seller_percentage" class="block text-gray-700 text-sm font-bold mb-2">Porcentaje de Vendedor para Terceros (%)</label>
-                                <input type="text" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" id="third_party_seller_percentage" name="third_party_seller_percentage" required>
-                            </div>
-                            <div class="mb-6">
-                                <label for="imagen" class="block text-gray-700 text-sm font-bold mb-2">Imagen del Producto</label>
-                                <input class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none" type="file" id="imagen" name="imagen">
-                            </div>
-                            <div class="flex items-center justify-center">
-                                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200">
-                                    Añadir Producto
-                                </button>
-                            </div>
+                                 <label for="third_party_seller_percentage" class="block text-gray-700 text-sm font-bold mb-2">Porcentaje de Vendedor para Terceros (%)</label>
+                                 <input type="text" class="shadow appearance-none border rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200 text-base" id="third_party_seller_percentage" name="third_party_seller_percentage" required style="min-height: 44px;">
+                             </div>
+                             <div class="mb-6">
+                                 <label for="imagen" class="block text-gray-700 text-sm font-bold mb-2">Imagen del Producto</label>
+                                 <input class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none p-4" type="file" id="imagen" name="imagen" style="min-height: 44px;">
+                             </div>
+                             <div class="flex items-center justify-center">
+                                 <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 w-full sm:w-auto text-lg" style="min-height: 48px;">
+                                     Añadir Producto
+                                 </button>
+                             </div>
                         </form>
                     </div>
                 </div>
@@ -178,9 +178,45 @@
         const sidebar = document.getElementById('sidebar');
         const content = document.getElementById('content');
 
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('-translate-x-full');
-            content.classList.toggle('md:ml-64');
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('-translate-x-full');
+                content.classList.toggle('md:ml-64');
+            });
+        }
+
+        // Swipe gesture for mobile sidebar
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+
+        document.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            currentX = e.touches[0].clientX;
+            const diff = currentX - startX;
+
+            // Only handle swipe from left edge
+            if (startX < 20 && diff > 50) {
+                sidebar.classList.remove('-translate-x-full');
+                content.classList.add('md:ml-64');
+            }
+        });
+
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        // Close sidebar when clicking outside on mobile
+        content.addEventListener('click', () => {
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+                content.classList.remove('md:ml-64');
+            }
         });
 
         // Animation with Anime.js

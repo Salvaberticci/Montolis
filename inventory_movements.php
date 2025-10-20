@@ -186,7 +186,7 @@
         <!-- Page Content -->
         <div id="content" class="flex-1 md:ml-64 transition-all duration-300 ease-in-out">
             <header class="bg-white shadow-md p-4 flex justify-between items-center">
-                <button id="menu-toggle" class="md:hidden text-gray-600">
+                <button id="menu-toggle" class="md:hidden text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors" style="min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-bars text-2xl"></i>
                 </button>
                 <h2 class="text-3xl font-bold text-gray-800">Movimientos de Inventario</h2>
@@ -210,7 +210,7 @@
                             <div class="mb-4">
                                 <div class="flex justify-between items-center">
                                     <label class="block text-sm font-medium text-gray-700">Productos</label>
-                                    <button type="button" onclick="addEntryProductRow()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm">
+                                    <button type="button" onclick="addEntryProductRow()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-md text-sm font-medium" style="min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">
                                         <i class="fas fa-plus mr-1"></i>Agregar Producto
                                     </button>
                                 </div>
@@ -219,7 +219,7 @@
                                 <div class="product-row grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border border-gray-200 rounded-md">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700">Producto</label>
-                                        <select name="entry_products[0][product_id]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required style="display: block;">
+                                        <select name="entry_products[0][product_id]" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" required style="display: block; min-height: 44px;">
                                             <option value="">Seleccionar producto</option>
                                             <?php
                                             $stmt = $product->read();
@@ -231,10 +231,10 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700">Cantidad</label>
-                                        <input type="number" name="entry_products[0][quantity]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required min="1">
+                                        <input type="number" name="entry_products[0][quantity]" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" required min="1" style="min-height: 44px;">
                                     </div>
                                     <div class="flex items-end">
-                                        <button type="button" onclick="removeEntryProductRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm">
+                                        <button type="button" onclick="removeEntryProductRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-md text-sm font-medium" style="min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">
                                             <i class="fas fa-trash mr-1"></i>Eliminar
                                         </button>
                                     </div>
@@ -284,7 +284,7 @@
                             <div class="mb-4">
                                 <div class="flex justify-between items-center">
                                     <label class="block text-sm font-medium text-gray-700">Productos</label>
-                                    <button type="button" onclick="addProductRow()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm">
+                                    <button type="button" onclick="addProductRow()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-md text-sm font-medium" style="min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">
                                         <i class="fas fa-plus mr-1"></i>Agregar Producto
                                     </button>
                                 </div>
@@ -293,7 +293,7 @@
                                 <div class="product-row grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border border-gray-200 rounded-md">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700">Producto</label>
-                                        <select name="products[0][product_id]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required style="display: block;">
+                                        <select name="products[0][product_id]" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" required style="display: block; min-height: 44px;">
                                             <option value="">Seleccionar producto</option>
                                             <?php
                                             $stmt = $product->read();
@@ -305,10 +305,10 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700">Cantidad</label>
-                                        <input type="number" name="products[0][quantity]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required min="1">
+                                        <input type="number" name="products[0][quantity]" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" required min="1" style="min-height: 44px;">
                                     </div>
                                     <div class="flex items-end">
-                                        <button type="button" onclick="removeProductRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm">
+                                        <button type="button" onclick="removeProductRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-md text-sm font-medium" style="min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">
                                             <i class="fas fa-trash mr-1"></i>Eliminar
                                         </button>
                                     </div>
@@ -316,22 +316,22 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-6">
                             <div>
                                 <label for="reason" class="block text-sm font-medium text-gray-700">Razón</label>
-                                <input type="text" name="reason" id="reason" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+                                <input type="text" name="reason" id="reason" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" required style="min-height: 44px;">
                             </div>
                             <div>
                                 <label for="client_name" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label>
-                                <input type="text" name="client_name" id="client_name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <input type="text" name="client_name" id="client_name" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" style="min-height: 44px;">
                             </div>
-                            <div class="md:col-span-2">
+                            <div class="sm:col-span-2">
                                 <label for="client_contact" class="block text-sm font-medium text-gray-700">Contacto del Cliente</label>
-                                <input type="text" name="client_contact" id="client_contact" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Teléfono o email">
+                                <input type="text" name="client_contact" id="client_contact" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" placeholder="Teléfono o email" style="min-height: 44px;">
                             </div>
                         </div>
                         <div class="mt-6">
-                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105">
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 w-full sm:w-auto text-lg" style="min-height: 48px;">
                                 <i class="fas fa-save mr-2"></i>Registrar Movimiento
                             </button>
                         </div>
@@ -339,21 +339,21 @@
                 </div>
 
                 <div class="bg-white rounded-lg shadow-xl">
-                    <div class="px-6 py-4 border-b border-gray-200">
-                        <h3 class="text-2xl font-bold text-gray-700">Historial de Movimientos</h3>
-                        <form method="GET" class="mt-4 grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-xl sm:text-2xl font-bold text-gray-700">Historial de Movimientos</h3>
+                        <form method="GET" class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                             <div>
-                                <input type="text" name="search" placeholder="Buscar..." value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <input type="text" name="search" placeholder="Buscar..." value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" style="min-height: 44px;">
                             </div>
                             <div>
-                                <select name="type" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <select name="type" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" style="min-height: 44px;">
                                     <option value="">Tipo</option>
                                     <option value="entry" <?php echo (isset($_GET['type']) && $_GET['type'] == 'entry') ? 'selected' : ''; ?>>Entrada</option>
                                     <option value="exit" <?php echo (isset($_GET['type']) && $_GET['type'] == 'exit') ? 'selected' : ''; ?>>Salida</option>
                                 </select>
                             </div>
                             <div>
-                                <select name="product_id" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <select name="product_id" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" style="min-height: 44px;">
                                     <option value="">Producto</option>
                                     <?php
                                     $stmt_products = $product->read();
@@ -365,22 +365,57 @@
                                 </select>
                             </div>
                             <div>
-                                <input type="date" name="date_from" value="<?php echo isset($_GET['date_from']) ? htmlspecialchars($_GET['date_from']) : ''; ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <input type="date" name="date_from" value="<?php echo isset($_GET['date_from']) ? htmlspecialchars($_GET['date_from']) : ''; ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" style="min-height: 44px;">
                             </div>
                             <div>
-                                <input type="date" name="date_to" value="<?php echo isset($_GET['date_to']) ? htmlspecialchars($_GET['date_to']) : ''; ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <input type="date" name="date_to" value="<?php echo isset($_GET['date_to']) ? htmlspecialchars($_GET['date_to']) : ''; ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" style="min-height: 44px;">
                             </div>
-                            <div class="md:col-span-5 flex gap-2">
-                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all duration-200">
+                            <div class="sm:col-span-2 lg:col-span-5 flex flex-col sm:flex-row gap-2">
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-all duration-200 flex-1 sm:flex-none text-lg" style="min-height: 48px; display: flex; align-items: center; justify-content: center;">
                                     <i class="fas fa-search mr-2"></i>Filtrar
                                 </button>
-                                <a href="inventory_movements.php" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all duration-200">
+                                <a href="inventory_movements.php" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-all duration-200 flex-1 sm:flex-none text-lg text-center" style="min-height: 48px; display: flex; align-items: center; justify-content: center;">
                                     <i class="fas fa-times mr-2"></i>Limpiar
                                 </a>
                             </div>
                         </form>
                     </div>
-                    <div class="overflow-x-auto">
+
+                    <!-- Mobile Card View -->
+                    <div class="block md:hidden">
+                        <?php
+                        $stmt_mobile = $movement->read($filters);
+                        while ($row = $stmt_mobile->fetch(PDO::FETCH_ASSOC)) {
+                            $type_label = $row['type'] == 'entry' ? 'Entrada' : 'Salida';
+                            $type_color = $row['type'] == 'entry' ? 'text-green-600' : 'text-red-600';
+                            $bg_color = $row['type'] == 'entry' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
+                            echo "<div class='{$bg_color} border rounded-lg p-4 m-4'>";
+                            echo "<div class='flex justify-between items-start mb-3'>";
+                            echo "<div class='flex-1'>";
+                            echo "<h4 class='font-bold text-lg text-gray-900'>{$row['product_name']}</h4>";
+                            echo "<p class='{$type_color} font-semibold'>{$type_label}</p>";
+                            echo "</div>";
+                            echo "<div class='text-right'>";
+                            echo "<div class='flex space-x-2'>";
+                            echo "<a href='edit_movement.php?id={$row['id']}' class='bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors duration-200' style='min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;'><i class='fas fa-edit'></i></a>";
+                            echo "<button onclick='confirmDelete({$row['id']})' class='bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors duration-200' style='min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;'><i class='fas fa-trash'></i></button>";
+                            echo "</div>";
+                            echo "</div>";
+                            echo "</div>";
+                            echo "<div class='grid grid-cols-2 gap-4 mb-3'>";
+                            echo "<div><span class='text-gray-500 text-sm'>Cantidad:</span><br><span class='font-semibold'>{$row['quantity']}</span></div>";
+                            echo "<div><span class='text-gray-500 text-sm'>Fecha:</span><br><span class='font-semibold'>{$row['date']}</span></div>";
+                            echo "</div>";
+                            if($row['reason']) echo "<div class='mb-2'><span class='text-gray-500 text-sm'>Razón:</span><br><span class='font-medium'>{$row['reason']}</span></div>";
+                            if($row['client_name']) echo "<div class='mb-2'><span class='text-gray-500 text-sm'>Cliente:</span><br><span class='font-medium'>{$row['client_name']}</span></div>";
+                            if($row['client_contact']) echo "<div><span class='text-gray-500 text-sm'>Contacto:</span><br><span class='font-medium'>{$row['client_contact']}</span></div>";
+                            echo "</div>";
+                        }
+                        ?>
+                    </div>
+
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto">
                         <table class="min-w-full">
                             <thead class="bg-gray-200">
                                 <tr>
@@ -556,9 +591,45 @@
         const sidebar = document.getElementById('sidebar');
         const content = document.getElementById('content');
 
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('-translate-x-full');
-            content.classList.toggle('md:ml-64');
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('-translate-x-full');
+                content.classList.toggle('md:ml-64');
+            });
+        }
+
+        // Swipe gesture for mobile sidebar
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+
+        document.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            currentX = e.touches[0].clientX;
+            const diff = currentX - startX;
+
+            // Only handle swipe from left edge
+            if (startX < 20 && diff > 50) {
+                sidebar.classList.remove('-translate-x-full');
+                content.classList.add('md:ml-64');
+            }
+        });
+
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        // Close sidebar when clicking outside on mobile
+        content.addEventListener('click', () => {
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+                content.classList.remove('md:ml-64');
+            }
         });
 
         // Animations with Anime.js

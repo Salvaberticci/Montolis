@@ -209,7 +209,7 @@
         <!-- Page Content -->
         <div id="content" class="flex-1 md:ml-64 transition-all duration-300 ease-in-out">
             <header class="bg-white shadow-md p-4 flex justify-between items-center">
-                <button id="menu-toggle" class="md:hidden text-gray-600">
+                <button id="menu-toggle" class="md:hidden text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors" style="min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-bars text-2xl"></i>
                 </button>
                 <h2 class="text-3xl font-bold text-gray-800">Estadísticas y Análisis</h2>
@@ -220,99 +220,99 @@
 
             <main class="p-6">
                 <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative">
                         <div class="flex-1">
                             <div class="flex items-center mb-2">
-                                <h3 class="text-lg font-semibold text-gray-600">Dinero Invertido</h3>
+                                <h3 class="text-base sm:text-lg font-semibold text-gray-600">Dinero Invertido</h3>
                                 <div class="custom-tooltip ml-2">
                                     <i class="fas fa-info-circle info-icon text-gray-400 text-sm"></i>
                                     <span class="tooltip-text">Total del costo de adquisición de todos los productos actualmente en inventario</span>
                                 </div>
                             </div>
-                            <p class="text-3xl font-bold text-red-600">$<?php echo number_format($investment_data['total_investment'] ?? 0, 2); ?></p>
+                            <p class="text-2xl sm:text-3xl font-bold text-red-600">$<?php echo number_format($investment_data['total_investment'] ?? 0, 2); ?></p>
                         </div>
-                        <div class="bg-red-500 rounded-full p-4">
-                            <i class="fas fa-dollar-sign text-white text-2xl"></i>
+                        <div class="bg-red-500 rounded-full p-3 sm:p-4 flex-shrink-0">
+                            <i class="fas fa-dollar-sign text-white text-xl sm:text-2xl"></i>
                         </div>
                     </div>
-                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative">
+                    <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative">
                         <div class="flex-1">
                             <div class="flex items-center mb-2">
-                                <h3 class="text-lg font-semibold text-gray-600">Ganancias Totales</h3>
+                                <h3 class="text-base sm:text-lg font-semibold text-gray-600">Ganancias Totales</h3>
                                 <div class="custom-tooltip ml-2">
                                     <i class="fas fa-info-circle info-icon text-gray-400 text-sm"></i>
                                     <span class="tooltip-text">Beneficio neto obtenido de las ventas (precio de venta menos costo del producto)</span>
                                 </div>
                             </div>
-                            <p class="text-3xl font-bold text-green-600">$<?php echo number_format($profit_data['total_profits'] ?? 0, 2); ?></p>
+                            <p class="text-2xl sm:text-3xl font-bold text-green-600">$<?php echo number_format($profit_data['total_profits'] ?? 0, 2); ?></p>
                         </div>
-                        <div class="bg-green-500 rounded-full p-4">
-                            <i class="fas fa-chart-line text-white text-2xl"></i>
+                        <div class="bg-green-500 rounded-full p-3 sm:p-4 flex-shrink-0">
+                            <i class="fas fa-chart-line text-white text-xl sm:text-2xl"></i>
                         </div>
                     </div>
-                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative">
+                    <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative">
                         <div class="flex-1">
                             <div class="flex items-center mb-2">
-                                <h3 class="text-lg font-semibold text-gray-600">Valor de Ventas</h3>
+                                <h3 class="text-base sm:text-lg font-semibold text-gray-600">Valor de Ventas</h3>
                                 <div class="custom-tooltip ml-2">
                                     <i class="fas fa-info-circle info-icon text-gray-400 text-sm"></i>
                                     <span class="tooltip-text">Ingresos totales generados por las ventas realizadas</span>
                                 </div>
                             </div>
-                            <p class="text-3xl font-bold text-blue-600">$<?php echo number_format($profit_data['total_sales_value'] ?? 0, 2); ?></p>
+                            <p class="text-2xl sm:text-3xl font-bold text-blue-600">$<?php echo number_format($profit_data['total_sales_value'] ?? 0, 2); ?></p>
                         </div>
-                        <div class="bg-blue-500 rounded-full p-4">
-                            <i class="fas fa-shopping-cart text-white text-2xl"></i>
+                        <div class="bg-blue-500 rounded-full p-3 sm:p-4 flex-shrink-0">
+                            <i class="fas fa-shopping-cart text-white text-xl sm:text-2xl"></i>
                         </div>
                     </div>
-                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative">
+                    <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative">
                         <div class="flex-1">
                             <div class="flex items-center mb-2">
-                                <h3 class="text-lg font-semibold text-gray-600">Valor del Stock</h3>
+                                <h3 class="text-base sm:text-lg font-semibold text-gray-600">Valor del Stock</h3>
                                 <div class="custom-tooltip ml-2">
                                     <i class="fas fa-info-circle info-icon text-gray-400 text-sm"></i>
                                     <span class="tooltip-text">Valor potencial de venta de todo el inventario actual (precio de venta × cantidad)</span>
                                 </div>
                             </div>
-                            <p class="text-3xl font-bold text-indigo-600">$<?php echo number_format($stock_data['total_stock_value'] ?? 0, 2); ?></p>
+                            <p class="text-2xl sm:text-3xl font-bold text-indigo-600">$<?php echo number_format($stock_data['total_stock_value'] ?? 0, 2); ?></p>
                         </div>
-                        <div class="bg-indigo-500 rounded-full p-4">
-                            <i class="fas fa-warehouse text-white text-2xl"></i>
+                        <div class="bg-indigo-500 rounded-full p-3 sm:p-4 flex-shrink-0">
+                            <i class="fas fa-warehouse text-white text-xl sm:text-2xl"></i>
                         </div>
                     </div>
-                    <div class="bg-white rounded-lg shadow-xl p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative">
+                    <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6 flex items-center justify-between transform hover:scale-105 transition-transform duration-300 relative sm:col-span-2 lg:col-span-1">
                         <div class="flex-1">
                             <div class="flex items-center mb-2">
-                                <h3 class="text-lg font-semibold text-gray-600">Total Movimientos</h3>
+                                <h3 class="text-base sm:text-lg font-semibold text-gray-600">Total Movimientos</h3>
                                 <div class="custom-tooltip ml-2">
                                     <i class="fas fa-info-circle info-icon text-gray-400 text-sm"></i>
                                     <span class="tooltip-text">Número total de registros de entrada y salida en el sistema de inventario</span>
                                 </div>
                             </div>
-                            <p class="text-3xl font-bold text-gray-800"><?php echo number_format(($movement_stats['entry_count'] ?? 0) + ($movement_stats['exit_count'] ?? 0)); ?></p>
+                            <p class="text-2xl sm:text-3xl font-bold text-gray-800"><?php echo number_format(($movement_stats['entry_count'] ?? 0) + ($movement_stats['exit_count'] ?? 0)); ?></p>
                         </div>
-                        <div class="bg-purple-500 rounded-full p-4">
-                            <i class="fas fa-exchange-alt text-white text-2xl"></i>
+                        <div class="bg-purple-500 rounded-full p-3 sm:p-4 flex-shrink-0">
+                            <i class="fas fa-exchange-alt text-white text-xl sm:text-2xl"></i>
                         </div>
                     </div>
                 </div>
 
                 <!-- Additional Financial Summary -->
-                <div class="bg-white rounded-lg shadow-xl p-6 mb-8">
-                    <h3 class="text-2xl font-bold mb-6 text-gray-700">Resumen Financiero Detallado</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="text-center">
-                            <h4 class="text-lg font-semibold text-gray-600 mb-2">Costo de Productos Vendidos</h4>
-                            <p class="text-3xl font-bold text-orange-600">$<?php echo number_format($profit_data['total_cost_sold'] ?? 0, 2); ?></p>
+                <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6 mb-8">
+                    <h3 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-700">Resumen Financiero Detallado</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <h4 class="text-base sm:text-lg font-semibold text-gray-600 mb-2">Costo de Productos Vendidos</h4>
+                            <p class="text-2xl sm:text-3xl font-bold text-orange-600">$<?php echo number_format($profit_data['total_cost_sold'] ?? 0, 2); ?></p>
                         </div>
-                        <div class="text-center">
-                            <h4 class="text-lg font-semibold text-gray-600 mb-2">Ingresos por Ventas</h4>
-                            <p class="text-3xl font-bold text-blue-600">$<?php echo number_format($profit_data['total_sales_value'] ?? 0, 2); ?></p>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <h4 class="text-base sm:text-lg font-semibold text-gray-600 mb-2">Ingresos por Ventas</h4>
+                            <p class="text-2xl sm:text-3xl font-bold text-blue-600">$<?php echo number_format($profit_data['total_sales_value'] ?? 0, 2); ?></p>
                         </div>
-                        <div class="text-center">
-                            <h4 class="text-lg font-semibold text-gray-600 mb-2">Margen de Ganancia</h4>
-                            <p class="text-3xl font-bold <?php echo (($profit_data['total_sales_value'] ?? 0) > 0) ? 'text-green-600' : 'text-red-600'; ?>">
+                        <div class="text-center p-4 bg-gray-50 rounded-lg sm:col-span-2 lg:col-span-1">
+                            <h4 class="text-base sm:text-lg font-semibold text-gray-600 mb-2">Margen de Ganancia</h4>
+                            <p class="text-2xl sm:text-3xl font-bold <?php echo (($profit_data['total_sales_value'] ?? 0) > 0) ? 'text-green-600' : 'text-red-600'; ?>">
                                 <?php
                                 $margin = ($profit_data['total_sales_value'] ?? 0) > 0 ?
                                     (($profit_data['total_profits'] ?? 0) / ($profit_data['total_sales_value'] ?? 1)) * 100 : 0;
@@ -324,49 +324,55 @@
                 </div>
 
                 <!-- Charts Row 1 -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-8">
                     <!-- Most Moved Products -->
-                    <div class="bg-white rounded-lg shadow-xl p-6">
-                        <h3 class="text-2xl font-bold mb-6 text-gray-700">Productos Más Movidos</h3>
-                        <canvas id="mostMovedChart" width="400" height="300"></canvas>
+                    <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6">
+                        <h3 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-700">Productos Más Movidos</h3>
+                        <div class="relative">
+                            <canvas id="mostMovedChart" width="400" height="300" class="w-full h-auto"></canvas>
+                        </div>
                     </div>
 
                     <!-- Movements Over Time -->
-                    <div class="bg-white rounded-lg shadow-xl p-6">
-                        <h3 class="text-2xl font-bold mb-6 text-gray-700">Movimientos por Mes (Últimos 12 meses)</h3>
-                        <canvas id="movementsOverTimeChart" width="400" height="300"></canvas>
+                    <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6">
+                        <h3 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-700">Movimientos por Mes (Últimos 12 meses)</h3>
+                        <div class="relative">
+                            <canvas id="movementsOverTimeChart" width="400" height="300" class="w-full h-auto"></canvas>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Charts Row 2 -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-8">
                     <!-- Movement Types -->
-                    <div class="bg-white rounded-lg shadow-xl p-6">
-                        <h3 class="text-2xl font-bold mb-6 text-gray-700">Tipos de Movimiento</h3>
-                        <canvas id="movementTypesChart" width="400" height="300"></canvas>
+                    <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6">
+                        <h3 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-700">Tipos de Movimiento</h3>
+                        <div class="relative">
+                            <canvas id="movementTypesChart" width="400" height="300" class="w-full h-auto"></canvas>
+                        </div>
                     </div>
 
                     <!-- Movement Summary -->
-                    <div class="bg-white rounded-lg shadow-xl p-6">
-                        <h3 class="text-2xl font-bold mb-6 text-gray-700">Resumen de Movimientos</h3>
-                        <div class="space-y-4">
+                    <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6">
+                        <h3 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-700">Resumen de Movimientos</h3>
+                        <div class="space-y-3 sm:space-y-4">
                             <?php
                             $total_entries = $movement_stats['total_entries'] ?? 0;
                             $total_exits = $movement_stats['total_exits'] ?? 0;
                             $entry_count = $movement_stats['entry_count'] ?? 0;
                             $exit_count = $movement_stats['exit_count'] ?? 0;
                             ?>
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-600">Total Entradas:</span>
-                                <span class="text-2xl font-bold text-green-600"><?php echo number_format($total_entries); ?> unidades</span>
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                                <span class="text-gray-600 font-medium">Total Entradas:</span>
+                                <span class="text-xl sm:text-2xl font-bold text-green-600"><?php echo number_format($total_entries); ?> unidades</span>
                             </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-600">Total Salidas:</span>
-                                <span class="text-2xl font-bold text-red-600"><?php echo number_format($total_exits); ?> unidades</span>
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                                <span class="text-gray-600 font-medium">Total Salidas:</span>
+                                <span class="text-xl sm:text-2xl font-bold text-red-600"><?php echo number_format($total_exits); ?> unidades</span>
                             </div>
-                            <div class="flex justify-between items-center border-t pt-4">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center border-t pt-4 gap-2">
                                 <span class="text-gray-600 font-semibold">Movimientos de Inventario:</span>
-                                <span class="text-3xl font-bold text-blue-700"><?php echo number_format($entry_count + $exit_count); ?> registros</span>
+                                <span class="text-2xl sm:text-3xl font-bold text-blue-700"><?php echo number_format($entry_count + $exit_count); ?> registros</span>
                             </div>
                         </div>
                     </div>
@@ -381,9 +387,45 @@
         const sidebar = document.getElementById('sidebar');
         const content = document.getElementById('content');
 
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('-translate-x-full');
-            content.classList.toggle('md:ml-64');
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('-translate-x-full');
+                content.classList.toggle('md:ml-64');
+            });
+        }
+
+        // Swipe gesture for mobile sidebar
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+
+        document.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            currentX = e.touches[0].clientX;
+            const diff = currentX - startX;
+
+            // Only handle swipe from left edge
+            if (startX < 20 && diff > 50) {
+                sidebar.classList.remove('-translate-x-full');
+                content.classList.add('md:ml-64');
+            }
+        });
+
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        // Close sidebar when clicking outside on mobile
+        content.addEventListener('click', () => {
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+                content.classList.remove('md:ml-64');
+            }
         });
 
         // Most Moved Products Chart

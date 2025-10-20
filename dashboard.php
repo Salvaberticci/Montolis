@@ -33,13 +33,29 @@ $stmt = $product->read();
             height: 100%;
             z-index: -1;
         }
+        @media (min-width: 768px) {
+            #menu-toggle {
+                display: none !important;
+            }
+            #sidebar {
+                transform: translateX(0) !important; /* Siempre visible en escritorio */
+            }
+        }
+        @media (max-width: 767px) {
+            #sidebar {
+                transform: translateX(-100%); /* Ocultar sidebar en móvil por defecto */
+            }
+            #sidebar.sidebar-open-mobile {
+                transform: translateX(0); /* Mostrar sidebar en móvil */
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
     <div id="particles-js"></div>
     <div class="flex">
         <!-- Sidebar -->
-        <div id="sidebar" class="bg-gray-800 text-white w-64 min-h-screen fixed top-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-30">
+        <div id="sidebar" class="bg-gray-800 text-white w-64 min-h-screen fixed top-0 left-0 transform transition-transform duration-300 ease-in-out z-30">
             <div class="p-6 text-2xl font-bold flex items-center">
                 <img src="images/logo.png" alt="Montoli's Logo" class="h-10 mr-3"> Montoli's
             </div>
@@ -72,9 +88,9 @@ $stmt = $product->read();
         <!-- /#sidebar -->
 
         <!-- Page Content -->
-        <div id="content" class="flex-1 md:ml-64 transition-all duration-300 ease-in-out">
+        <div id="content" class="flex-1 transition-all duration-300 ease-in-out md:ml-64">
             <header class="bg-white shadow-md p-4 flex justify-between items-center">
-                <button id="menu-toggle" class="md:hidden text-gray-600">
+                <button id="menu-toggle" class="md:hidden text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors" style="min-width: 44px; min-height: 44px; align-items: center; justify-content: center;">
                     <i class="fas fa-bars text-2xl"></i>
                 </button>
                 <h2 class="text-3xl font-bold text-gray-800">Dashboard</h2>
@@ -108,7 +124,44 @@ $stmt = $product->read();
 
                 <div class="mt-8">
                     <h3 class="text-2xl font-bold mb-6 text-gray-700">Listado de Productos</h3>
-                    <div class="overflow-x-auto bg-white rounded-lg shadow-xl">
+
+                    <!-- Mobile Card View -->
+                    <div class="block md:hidden space-y-4">
+                        <?php
+                        $stmt_mobile = $product->read();
+                        while ($row = $stmt_mobile->fetch(PDO::FETCH_ASSOC)){
+                            extract($row);
+                            echo "<div class='bg-white rounded-lg shadow-xl p-4'>";
+                            echo "<div class='flex items-center mb-3'>";
+                            echo $image ? "<img src='uploads/{$image}' class='h-16 w-16 rounded-full object-cover mr-4 shadow-md' />" : "<img src='images/placeholder.png' class='h-16 w-16 rounded-full object-cover mr-4 shadow-md' />";
+                            echo "<div class='flex-1'>";
+                            echo "<h4 class='font-bold text-lg text-gray-900'>{$name}</h4>";
+                            echo "<p class='text-gray-600 text-sm'>{$description}</p>";
+                            echo "</div>";
+                            echo "</div>";
+                            echo "<div class='grid grid-cols-2 gap-4 mb-3'>";
+                            echo "<div><span class='text-gray-500 text-sm'>Cantidad:</span><br><span class='font-semibold'>{$quantity}</span></div>";
+                            echo "<div><span class='text-gray-500 text-sm'>Costo:</span><br><span class='font-semibold text-green-600'>&#36;{$product_cost}</span></div>";
+                            echo "<div><span class='text-gray-500 text-sm'>Venta:</span><br><span class='font-semibold text-blue-600'>&#36;{$sale_price}</span></div>";
+                            echo "<div><span class='text-gray-500 text-sm'>Mayor:</span><br><span class='font-semibold text-purple-600'>&#36;{$wholesale_price}</span></div>";
+                            echo "</div>";
+                            echo "<div class='flex justify-between items-center pt-3 border-t border-gray-200'>";
+                            echo "<div class='text-sm text-gray-600'>";
+                            echo "<span>3ros: <span class='font-semibold text-indigo-600'>&#36;{$third_party_sale_price}</span></span>";
+                            echo "<span class='ml-4'>% Vendedor: <span class='font-semibold text-pink-600'>{$third_party_seller_percentage}%</span></span>";
+                            echo "</div>";
+                            echo "<div class='flex space-x-3'>";
+                            echo "<a href='edit_product.php?id={$id}' class='bg-yellow-500 hover:bg-yellow-600 text-white p-2 rounded-lg transition-colors duration-200' style='min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;'><i class='fas fa-pencil-alt'></i></a>";
+                            echo "<button type='button' class='bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors duration-200 delete-btn' data-id='{$id}' style='min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;'><i class='fas fa-trash-alt'></i></button>";
+                            echo "</div>";
+                            echo "</div>";
+                            echo "</div>";
+                        }
+                        ?>
+                    </div>
+
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto bg-white rounded-lg shadow-xl">
                         <div class="min-w-full overflow-x-auto">
                             <table class="min-w-full">
                                 <thead class="bg-gray-200">
@@ -168,57 +221,93 @@ $stmt = $product->read();
     </div>
 
     <script>
-        const menuToggle = document.getElementById('menu-toggle');
-        const sidebar = document.getElementById('sidebar');
-        const content = document.getElementById('content');
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const content = document.getElementById('content');
 
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('-translate-x-full');
-            content.classList.toggle('md:ml-64');
-        });
+            if (menuToggle) {
+                menuToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('sidebar-open-mobile');
+                });
+            }
 
-        // Animations with Anime.js
-        anime({
-            targets: '.table-row',
-            translateY: [50, 0],
-            opacity: [0, 1],
-            delay: anime.stagger(100),
-            easing: 'easeOutExpo'
-        });
+            // Swipe gesture for mobile sidebar
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
 
-        // Delete Modal Logic
-        const deleteButtons = document.querySelectorAll('.delete-btn');
-        const deleteModal = document.getElementById('delete-modal');
-        const cancelDelete = document.getElementById('cancel-delete');
-        const confirmDelete = document.getElementById('confirm-delete');
+            document.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+            });
 
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const id = button.dataset.id;
-                confirmDelete.href = `delete_product.php?id=${id}`;
-                deleteModal.classList.remove('hidden');
-                deleteModal.classList.add('flex');
-                anime({
-                    targets: '#delete-modal .bg-white',
-                    scale: [0.7, 1],
-                    opacity: [0, 1],
-                    duration: 300,
-                    easing: 'easeOutExpo'
+            document.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                currentX = e.touches[0].clientX;
+                const diff = currentX - startX;
+
+                // Only handle swipe from left edge
+                if (startX < 20 && diff > 50) {
+                    sidebar.classList.add('sidebar-open-mobile');
+                }
+            });
+
+            document.addEventListener('touchend', () => {
+                isDragging = false;
+            });
+
+            // Close sidebar when clicking outside on mobile
+            content.addEventListener('click', () => {
+                if (window.innerWidth < 768 && sidebar.classList.contains('sidebar-open-mobile')) {
+                    sidebar.classList.remove('sidebar-open-mobile');
+                }
+            });
+
+            // Animations with Anime.js
+            anime({
+                targets: '.table-row',
+                translateY: [50, 0],
+                opacity: [0, 1],
+                delay: anime.stagger(100),
+                easing: 'easeOutExpo'
+            });
+
+            // Delete Modal Logic
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            const deleteModal = document.getElementById('delete-modal');
+            const cancelDelete = document.getElementById('cancel-delete');
+            const confirmDelete = document.getElementById('confirm-delete');
+
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const id = button.dataset.id;
+                    confirmDelete.href = `delete_product.php?id=${id}`;
+                    deleteModal.classList.remove('hidden');
+                    deleteModal.classList.add('flex');
+                    anime({
+                        targets: '#delete-modal .bg-white',
+                        scale: [0.7, 1],
+                        opacity: [0, 1],
+                        duration: 300,
+                        easing: 'easeOutExpo'
+                    });
                 });
             });
-        });
 
-        cancelDelete.addEventListener('click', () => {
-            anime({
-                targets: '#delete-modal .bg-white',
-                scale: [1, 0.7],
-                opacity: [1, 0],
-                duration: 300,
-                easing: 'easeInExpo',
-                complete: () => {
-                    deleteModal.classList.add('hidden');
-                    deleteModal.classList.remove('flex');
-                }
+            cancelDelete.addEventListener('click', () => {
+                anime({
+                    targets: '#delete-modal .bg-white',
+                    scale: [1, 0.7],
+                    opacity: [1, 0],
+                    duration: 300,
+                    easing: 'easeInExpo',
+                    complete: () => {
+                        deleteModal.classList.add('hidden');
+                        deleteModal.classList.remove('flex');
+                    }
+                });
             });
         });
     </script>

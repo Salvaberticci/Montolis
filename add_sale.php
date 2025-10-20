@@ -111,7 +111,7 @@
         <!-- Page Content -->
         <div id="content" class="flex-1 md:ml-64 transition-all duration-300 ease-in-out">
             <header class="bg-white shadow-md p-4 flex justify-between items-center">
-                <button id="menu-toggle" class="md:hidden text-gray-600">
+                <button id="menu-toggle" class="md:hidden text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors" style="min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-bars text-2xl"></i>
                 </button>
                 <h2 class="text-3xl font-bold text-gray-800">Registrar Venta</h2>
@@ -124,7 +124,7 @@
                         <form action="add_sale.php" method="post">
                             <div class="mb-6">
                                 <label for="product_id" class="block text-gray-700 text-sm font-bold mb-2">Producto</label>
-                                <select id="product_id" name="product_id" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" required>
+                                <select id="product_id" name="product_id" class="shadow appearance-none border rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200 text-base" required style="min-height: 44px;">
                                     <?php
                                     while ($row = $stmt_products->fetch(PDO::FETCH_ASSOC)){
                                         extract($row);
@@ -135,24 +135,24 @@
                             </div>
                             <div class="mb-6">
                                 <label for="quantity_sold" class="block text-gray-700 text-sm font-bold mb-2">Cantidad Vendida</label>
-                                <input type="number" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" id="quantity_sold" name="quantity_sold" required>
+                                <input type="number" class="shadow appearance-none border rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200 text-base" id="quantity_sold" name="quantity_sold" required style="min-height: 44px;">
                             </div>
                             <div class="mb-6">
                                 <label for="sale_type" class="block text-gray-700 text-sm font-bold mb-2">Tipo de Venta</label>
-                                <select id="sale_type" name="sale_type" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" required>
+                                <select id="sale_type" name="sale_type" class="shadow appearance-none border rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200 text-base" required style="min-height: 44px;">
                                     <option value="direct">Directa</option>
                                     <option value="third_party">Terceros</option>
                                 </select>
                             </div>
                             <div class="mb-6">
                                 <label for="payment_type" class="block text-gray-700 text-sm font-bold mb-2">Tipo de Pago</label>
-                                <select id="payment_type" name="payment_type" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" required>
+                                <select id="payment_type" name="payment_type" class="shadow appearance-none border rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200 text-base" required style="min-height: 44px;">
                                     <option value="cash">Efectivo</option>
                                     <option value="credit">Crédito</option>
                                 </select>
                             </div>
                             <div class="flex items-center justify-center">
-                                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200">
+                                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 w-full sm:w-auto text-lg" style="min-height: 48px;">
                                     Registrar Venta
                                 </button>
                             </div>
@@ -168,9 +168,45 @@
         const sidebar = document.getElementById('sidebar');
         const content = document.getElementById('content');
 
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('-translate-x-full');
-            content.classList.toggle('md:ml-64');
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('-translate-x-full');
+                content.classList.toggle('md:ml-64');
+            });
+        }
+
+        // Swipe gesture for mobile sidebar
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+
+        document.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            currentX = e.touches[0].clientX;
+            const diff = currentX - startX;
+
+            // Only handle swipe from left edge
+            if (startX < 20 && diff > 50) {
+                sidebar.classList.remove('-translate-x-full');
+                content.classList.add('md:ml-64');
+            }
+        });
+
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        // Close sidebar when clicking outside on mobile
+        content.addEventListener('click', () => {
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+                content.classList.remove('md:ml-64');
+            }
         });
 
         // Animation with Anime.js
