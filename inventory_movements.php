@@ -63,20 +63,53 @@
         exit();
     }
 
-    if($_POST && isset($_POST['product_id'])) {
-        $movement->product_id = $_POST['product_id'];
+    if($_POST) {
         $movement->type = $_POST['type'];
-        $movement->quantity = $_POST['quantity'];
         $movement->reason = $_POST['reason'];
         $movement->client_name = $_POST['client_name'] ?? '';
         $movement->client_contact = $_POST['client_contact'] ?? '';
 
-        if($movement->create()) {
-            $notification = 'Movimiento registrado exitosamente.';
-            $notification_type = 'success';
+        if($movement->type == 'entry') {
+            // Single product entry
+            $movement->product_id = $_POST['product_id'];
+            $movement->quantity = $_POST['quantity'];
+
+            if($movement->create()) {
+                $notification = 'Movimiento registrado exitosamente.';
+                $notification_type = 'success';
+            } else {
+                $notification = 'Error al registrar el movimiento.';
+                $notification_type = 'error';
+            }
         } else {
-            $notification = 'Error al registrar el movimiento.';
-            $notification_type = 'error';
+            // Multiple products exit
+            $products = $_POST['products'] ?? [];
+            $success_count = 0;
+            $error_count = 0;
+
+            foreach($products as $product_data) {
+                if(!empty($product_data['product_id']) && !empty($product_data['quantity'])) {
+                    $movement->product_id = $product_data['product_id'];
+                    $movement->quantity = $product_data['quantity'];
+
+                    if($movement->create()) {
+                        $success_count++;
+                    } else {
+                        $error_count++;
+                    }
+                }
+            }
+
+            if($success_count > 0) {
+                $notification = "Se registraron {$success_count} movimientos exitosamente.";
+                if($error_count > 0) {
+                    $notification .= " {$error_count} movimientos fallaron.";
+                }
+                $notification_type = $error_count > 0 ? 'warning' : 'success';
+            } else {
+                $notification = 'Error al registrar los movimientos.';
+                $notification_type = 'error';
+            }
         }
     }
     ?>
@@ -126,8 +159,17 @@
             <main class="p-6">
                 <div class="bg-white rounded-lg shadow-xl p-6 mb-8">
                     <h3 class="text-2xl font-bold mb-6 text-gray-700">Registrar Movimiento</h3>
-                    <form action="inventory_movements.php" method="post">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <form action="inventory_movements.php" method="post" id="movement-form">
+                        <div class="mb-4">
+                            <label for="type" class="block text-sm font-medium text-gray-700">Tipo</label>
+                            <select name="type" id="type" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required onchange="toggleProductSection()">
+                                <option value="entry">Entrada</option>
+                                <option value="exit">Salida</option>
+                            </select>
+                        </div>
+
+                        <!-- Single product section for entries -->
+                        <div id="single-product-section" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="product_id" class="block text-sm font-medium text-gray-700">Producto</label>
                                 <select name="product_id" id="product_id" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
@@ -141,16 +183,49 @@
                                 </select>
                             </div>
                             <div>
-                                <label for="type" class="block text-sm font-medium text-gray-700">Tipo</label>
-                                <select name="type" id="type" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
-                                    <option value="entry">Entrada</option>
-                                    <option value="exit">Salida</option>
-                                </select>
-                            </div>
-                            <div>
                                 <label for="quantity" class="block text-sm font-medium text-gray-700">Cantidad</label>
                                 <input type="number" name="quantity" id="quantity" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required min="1">
                             </div>
+                        </div>
+
+                        <!-- Multiple products section for exits -->
+                        <div id="multiple-products-section" class="hidden">
+                            <div class="mb-4">
+                                <div class="flex justify-between items-center">
+                                    <label class="block text-sm font-medium text-gray-700">Productos</label>
+                                    <button type="button" onclick="addProductRow()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm">
+                                        <i class="fas fa-plus mr-1"></i>Agregar Producto
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="products-container">
+                                <div class="product-row grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border border-gray-200 rounded-md">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Producto</label>
+                                        <select name="products[0][product_id]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+                                            <option value="">Seleccionar producto</option>
+                                            <?php
+                                            $stmt = $product->read();
+                                            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                                echo "<option value='{$row['id']}'>{$row['name']}</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Cantidad</label>
+                                        <input type="number" name="products[0][quantity]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required min="1">
+                                    </div>
+                                    <div class="flex items-end">
+                                        <button type="button" onclick="removeProductRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm">
+                                            <i class="fas fa-trash mr-1"></i>Eliminar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                             <div>
                                 <label for="reason" class="block text-sm font-medium text-gray-700">Razón</label>
                                 <input type="text" name="reason" id="reason" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
@@ -159,7 +234,7 @@
                                 <label for="client_name" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label>
                                 <input type="text" name="client_name" id="client_name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                             </div>
-                            <div>
+                            <div class="md:col-span-2">
                                 <label for="client_contact" class="block text-sm font-medium text-gray-700">Contacto del Cliente</label>
                                 <input type="text" name="client_contact" id="client_contact" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Teléfono o email">
                             </div>
@@ -398,6 +473,56 @@
             delay: anime.stagger(100),
             easing: 'easeOutExpo'
         });
+
+        function toggleProductSection() {
+            const type = document.getElementById('type').value;
+            const singleSection = document.getElementById('single-product-section');
+            const multipleSection = document.getElementById('multiple-products-section');
+
+            if(type === 'exit') {
+                singleSection.classList.add('hidden');
+                multipleSection.classList.remove('hidden');
+            } else {
+                singleSection.classList.remove('hidden');
+                multipleSection.classList.add('hidden');
+            }
+        }
+
+        function addProductRow() {
+            const container = document.getElementById('products-container');
+            const rowCount = container.children.length;
+            const rowHtml = `
+                <div class="product-row grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border border-gray-200 rounded-md">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Producto</label>
+                        <select name="products[${rowCount}][product_id]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+                            <option value="">Seleccionar producto</option>
+                            <?php
+                            $stmt = $product->read();
+                            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                echo "<option value='{$row['id']}'>{$row['name']}</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Cantidad</label>
+                        <input type="number" name="products[${rowCount}][quantity]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required min="1">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="button" onclick="removeProductRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm">
+                            <i class="fas fa-trash mr-1"></i>Eliminar
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', rowHtml);
+        }
+
+        function removeProductRow(button) {
+            const row = button.closest('.product-row');
+            row.remove();
+        }
     </script>
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
