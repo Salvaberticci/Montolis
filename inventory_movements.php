@@ -210,12 +210,6 @@
                             </select>
                         </div>
 
-                        <!-- Bulk entry toggle -->
-                        <div class="mb-4">
-                            <button type="button" id="bulk-entry-toggle" onclick="toggleBulkEntry()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm transition-colors duration-200">
-                                <i class="fas fa-plus mr-1"></i>Agregar Más Productos
-                            </button>
-                        </div>
 
                         <!-- Single product section for entries -->
                         <div id="single-product-section" class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -238,10 +232,13 @@
                         </div>
 
                         <!-- Additional products section for entries -->
-                        <div id="additional-products-section" class="hidden">
+                        <div id="additional-products-section">
                             <div class="mb-4">
                                 <div class="flex justify-between items-center">
-                                    <label class="block text-sm font-medium text-gray-700">Productos Adicionales</label>
+                                    <label class="block text-sm font-medium text-gray-700">Productos</label>
+                                    <button type="button" onclick="addAdditionalProductRow()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm">
+                                        <i class="fas fa-plus mr-1"></i>Agregar Producto
+                                    </button>
                                 </div>
                             </div>
                             <div id="additional-products-container">
@@ -577,24 +574,21 @@
             const singleSection = document.getElementById('single-product-section');
             const multipleSection = document.getElementById('multiple-products-section');
             const additionalSection = document.getElementById('additional-products-section');
-            const bulkToggle = document.getElementById('bulk-entry-toggle');
 
             if(type === 'exit') {
                 singleSection.classList.add('hidden');
                 additionalSection.classList.add('hidden');
                 multipleSection.classList.remove('hidden');
-                bulkToggle.style.display = 'none';
             } else {
                 multipleSection.classList.add('hidden');
                 singleSection.classList.remove('hidden');
                 additionalSection.classList.remove('hidden');
-                bulkToggle.style.display = 'inline-block';
             }
         }
 
-        function toggleBulkEntry() {
+        function addAdditionalProductRow() {
             const container = document.getElementById('additional-products-container');
-            const rowCount = container.children.length + 1; // +1 because we start from 0
+            const rowCount = container.children.length;
             const rowHtml = `
                 <div class="additional-product-row grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border border-gray-200 rounded-md">
                     <div>
