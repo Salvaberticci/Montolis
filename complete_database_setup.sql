@@ -11,8 +11,8 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 -- Create database if it doesn't exist
-CREATE DATABASE IF NOT EXISTS `montolis_inventory` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
-USE `montolis_inventory`;
+-- CREATE DATABASE IF NOT EXISTS `montolis_inventory` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+-- USE `montolis_inventory`;
 
 -- --------------------------------------------------------
 -- Table structure for table `users`

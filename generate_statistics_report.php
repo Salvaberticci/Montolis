@@ -248,7 +248,7 @@ if (!empty($movements_by_month)) {
 $pdf->Ln(20);
 $pdf->SetFont('helvetica', 'I', 8);
 $pdf->Cell(0, 10, 'Reporte generado por el Sistema de Inventario Montoli\'s el ' . date('d/m/Y H:i:s'), 0, 1, 'C');
-$pdf->Cell(0, 10, 'Usuario: ' . htmlspecialchars($_SESSION['username']), 0, 1, 'C');
+$pdf->Cell(0, 10, 'Usuario: ' . (isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'Usuario'), 0, 1, 'C');
 
 // Output the PDF
 $pdf->Output('reporte_estadisticas_' . date('Y-m-d_H-i-s') . '.pdf', 'D');

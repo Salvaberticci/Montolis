@@ -58,7 +58,7 @@
                 </a>
                 <div class="border-t border-gray-600 mt-6 pt-6">
                     <div class="px-6 py-2 text-gray-400 text-sm">
-                        <i class="fas fa-user mr-2"></i><?php echo htmlspecialchars($_SESSION['username']); ?>
+                        <i class="fas fa-user mr-2"></i><?php echo isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'Usuario'; ?>
                     </div>
                     <a href="logout.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-red-600 transition-colors duration-200">
                         <i class="fas fa-sign-out-alt mr-3"></i> Cerrar Sesión
