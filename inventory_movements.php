@@ -70,23 +70,40 @@
         $movement->client_contact = $_POST['client_contact'] ?? '';
 
         if($movement->type == 'entry') {
-            // Check if bulk entry is enabled
-            $bulk_products = $_POST['bulk_products'] ?? [];
-            if(!empty($bulk_products) && isset($_POST['bulk-entry-toggle'])) {
-                // Multiple products entry
+            // Collect all products (main + additional)
+            $all_products = [];
+
+            // Add main product if provided
+            if(!empty($_POST['product_id']) && !empty($_POST['quantity'])) {
+                $all_products[] = [
+                    'product_id' => $_POST['product_id'],
+                    'quantity' => $_POST['quantity']
+                ];
+            }
+
+            // Add additional products if any
+            $additional_products = $_POST['additional_products'] ?? [];
+            foreach($additional_products as $product_data) {
+                if(!empty($product_data['product_id']) && !empty($product_data['quantity'])) {
+                    $all_products[] = $product_data;
+                }
+            }
+
+            if(empty($all_products)) {
+                $notification = 'Por favor complete al menos un producto.';
+                $notification_type = 'error';
+            } else {
                 $success_count = 0;
                 $error_count = 0;
 
-                foreach($bulk_products as $product_data) {
-                    if(!empty($product_data['product_id']) && !empty($product_data['quantity'])) {
-                        $movement->product_id = $product_data['product_id'];
-                        $movement->quantity = $product_data['quantity'];
+                foreach($all_products as $product_data) {
+                    $movement->product_id = $product_data['product_id'];
+                    $movement->quantity = $product_data['quantity'];
 
-                        if($movement->create()) {
-                            $success_count++;
-                        } else {
-                            $error_count++;
-                        }
+                    if($movement->create()) {
+                        $success_count++;
+                    } else {
+                        $error_count++;
                     }
                 }
 
@@ -99,23 +116,6 @@
                 } else {
                     $notification = 'Error al registrar las entradas.';
                     $notification_type = 'error';
-                }
-            } else {
-                // Single product entry - validate required fields
-                if(empty($_POST['product_id']) || empty($_POST['quantity'])) {
-                    $notification = 'Por favor complete todos los campos requeridos.';
-                    $notification_type = 'error';
-                } else {
-                    $movement->product_id = $_POST['product_id'];
-                    $movement->quantity = $_POST['quantity'];
-
-                    if($movement->create()) {
-                        $notification = 'Entrada registrada exitosamente.';
-                        $notification_type = 'success';
-                    } else {
-                        $notification = 'Error al registrar la entrada.';
-                        $notification_type = 'error';
-                    }
                 }
             }
         } else {
@@ -212,10 +212,9 @@
 
                         <!-- Bulk entry toggle -->
                         <div class="mb-4">
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" id="bulk-entry-toggle" onchange="toggleBulkEntry()" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                <span class="ml-2 text-sm text-gray-700">Entrada múltiple de productos</span>
-                            </label>
+                            <button type="button" id="bulk-entry-toggle" onclick="toggleBulkEntry()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm transition-colors duration-200">
+                                <i class="fas fa-plus mr-1"></i>Agregar Más Productos
+                            </button>
                         </div>
 
                         <!-- Single product section for entries -->
@@ -235,6 +234,18 @@
                             <div>
                                 <label for="quantity" class="block text-sm font-medium text-gray-700">Cantidad</label>
                                 <input type="number" name="quantity" id="quantity" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" min="1">
+                            </div>
+                        </div>
+
+                        <!-- Additional products section for entries -->
+                        <div id="additional-products-section" class="hidden">
+                            <div class="mb-4">
+                                <div class="flex justify-between items-center">
+                                    <label class="block text-sm font-medium text-gray-700">Productos Adicionales</label>
+                                </div>
+                            </div>
+                            <div id="additional-products-container">
+                                <!-- Additional products will be added here -->
                             </div>
                         </div>
 
@@ -565,38 +576,51 @@
             const type = document.getElementById('type').value;
             const singleSection = document.getElementById('single-product-section');
             const multipleSection = document.getElementById('multiple-products-section');
-            const bulkEntrySection = document.getElementById('bulk-entry-section');
+            const additionalSection = document.getElementById('additional-products-section');
             const bulkToggle = document.getElementById('bulk-entry-toggle');
 
             if(type === 'exit') {
                 singleSection.classList.add('hidden');
-                bulkEntrySection.classList.add('hidden');
+                additionalSection.classList.add('hidden');
                 multipleSection.classList.remove('hidden');
-                bulkToggle.checked = false;
+                bulkToggle.style.display = 'none';
             } else {
                 multipleSection.classList.add('hidden');
-                if(bulkToggle.checked) {
-                    singleSection.classList.add('hidden');
-                    bulkEntrySection.classList.remove('hidden');
-                } else {
-                    singleSection.classList.remove('hidden');
-                    bulkEntrySection.classList.add('hidden');
-                }
+                singleSection.classList.remove('hidden');
+                additionalSection.classList.remove('hidden');
+                bulkToggle.style.display = 'inline-block';
             }
         }
 
         function toggleBulkEntry() {
-            const bulkToggle = document.getElementById('bulk-entry-toggle');
-            const singleSection = document.getElementById('single-product-section');
-            const bulkEntrySection = document.getElementById('bulk-entry-section');
-
-            if(bulkToggle.checked) {
-                singleSection.classList.add('hidden');
-                bulkEntrySection.classList.remove('hidden');
-            } else {
-                singleSection.classList.remove('hidden');
-                bulkEntrySection.classList.add('hidden');
-            }
+            const container = document.getElementById('additional-products-container');
+            const rowCount = container.children.length + 1; // +1 because we start from 0
+            const rowHtml = `
+                <div class="additional-product-row grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border border-gray-200 rounded-md">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Producto</label>
+                        <select name="additional_products[${rowCount}][product_id]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="">Seleccionar producto</option>
+                            <?php
+                            $stmt = $product->read();
+                            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                echo "<option value='{$row['id']}'>{$row['name']}</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Cantidad</label>
+                        <input type="number" name="additional_products[${rowCount}][quantity]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" min="1">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="button" onclick="removeAdditionalProductRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm">
+                            <i class="fas fa-trash mr-1"></i>Eliminar
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', rowHtml);
         }
 
         function addProductRow() {
@@ -668,6 +692,11 @@
 
         function removeBulkEntryRow(button) {
             const row = button.closest('.bulk-entry-row');
+            row.remove();
+        }
+
+        function removeAdditionalProductRow(button) {
+            const row = button.closest('.additional-product-row');
             row.remove();
         }
     </script>
