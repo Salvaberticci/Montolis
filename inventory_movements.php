@@ -70,20 +70,52 @@
         $movement->client_contact = $_POST['client_contact'] ?? '';
 
         if($movement->type == 'entry') {
-            // Single product entry - validate required fields
-            if(empty($_POST['product_id']) || empty($_POST['quantity'])) {
-                $notification = 'Por favor complete todos los campos requeridos.';
-                $notification_type = 'error';
-            } else {
-                $movement->product_id = $_POST['product_id'];
-                $movement->quantity = $_POST['quantity'];
+            // Check if bulk entry is enabled
+            $bulk_products = $_POST['bulk_products'] ?? [];
+            if(!empty($bulk_products) && isset($_POST['bulk-entry-toggle'])) {
+                // Multiple products entry
+                $success_count = 0;
+                $error_count = 0;
 
-                if($movement->create()) {
-                    $notification = 'Movimiento registrado exitosamente.';
-                    $notification_type = 'success';
+                foreach($bulk_products as $product_data) {
+                    if(!empty($product_data['product_id']) && !empty($product_data['quantity'])) {
+                        $movement->product_id = $product_data['product_id'];
+                        $movement->quantity = $product_data['quantity'];
+
+                        if($movement->create()) {
+                            $success_count++;
+                        } else {
+                            $error_count++;
+                        }
+                    }
+                }
+
+                if($success_count > 0) {
+                    $notification = "Se registraron {$success_count} entradas exitosamente.";
+                    if($error_count > 0) {
+                        $notification .= " {$error_count} entradas fallaron.";
+                    }
+                    $notification_type = $error_count > 0 ? 'warning' : 'success';
                 } else {
-                    $notification = 'Error al registrar el movimiento.';
+                    $notification = 'Error al registrar las entradas.';
                     $notification_type = 'error';
+                }
+            } else {
+                // Single product entry - validate required fields
+                if(empty($_POST['product_id']) || empty($_POST['quantity'])) {
+                    $notification = 'Por favor complete todos los campos requeridos.';
+                    $notification_type = 'error';
+                } else {
+                    $movement->product_id = $_POST['product_id'];
+                    $movement->quantity = $_POST['quantity'];
+
+                    if($movement->create()) {
+                        $notification = 'Entrada registrada exitosamente.';
+                        $notification_type = 'success';
+                    } else {
+                        $notification = 'Error al registrar la entrada.';
+                        $notification_type = 'error';
+                    }
                 }
             }
         } else {
@@ -110,13 +142,13 @@
                 }
 
                 if($success_count > 0) {
-                    $notification = "Se registraron {$success_count} movimientos exitosamente.";
+                    $notification = "Se registraron {$success_count} salidas exitosamente.";
                     if($error_count > 0) {
-                        $notification .= " {$error_count} movimientos fallaron.";
+                        $notification .= " {$error_count} salidas fallaron.";
                     }
                     $notification_type = $error_count > 0 ? 'warning' : 'success';
                 } else {
-                    $notification = 'Error al registrar los movimientos.';
+                    $notification = 'Error al registrar las salidas.';
                     $notification_type = 'error';
                 }
             }
@@ -178,6 +210,14 @@
                             </select>
                         </div>
 
+                        <!-- Bulk entry toggle -->
+                        <div class="mb-4">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" id="bulk-entry-toggle" onchange="toggleBulkEntry()" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <span class="ml-2 text-sm text-gray-700">Entrada múltiple de productos</span>
+                            </label>
+                        </div>
+
                         <!-- Single product section for entries -->
                         <div id="single-product-section" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
@@ -195,6 +235,43 @@
                             <div>
                                 <label for="quantity" class="block text-sm font-medium text-gray-700">Cantidad</label>
                                 <input type="number" name="quantity" id="quantity" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" min="1">
+                            </div>
+                        </div>
+
+                        <!-- Multiple products section for bulk entries -->
+                        <div id="bulk-entry-section" class="hidden">
+                            <div class="mb-4">
+                                <div class="flex justify-between items-center">
+                                    <label class="block text-sm font-medium text-gray-700">Productos a Entrar</label>
+                                    <button type="button" onclick="addBulkEntryRow()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm">
+                                        <i class="fas fa-plus mr-1"></i>Agregar Producto
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="bulk-entry-container">
+                                <div class="bulk-entry-row grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border border-gray-200 rounded-md">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Producto</label>
+                                        <select name="bulk_products[0][product_id]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                            <option value="">Seleccionar producto</option>
+                                            <?php
+                                            $stmt = $product->read();
+                                            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                                echo "<option value='{$row['id']}'>{$row['name']}</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Cantidad</label>
+                                        <input type="number" name="bulk_products[0][quantity]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" min="1">
+                                    </div>
+                                    <div class="flex items-end">
+                                        <button type="button" onclick="removeBulkEntryRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm">
+                                            <i class="fas fa-trash mr-1"></i>Eliminar
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -488,13 +565,37 @@
             const type = document.getElementById('type').value;
             const singleSection = document.getElementById('single-product-section');
             const multipleSection = document.getElementById('multiple-products-section');
+            const bulkEntrySection = document.getElementById('bulk-entry-section');
+            const bulkToggle = document.getElementById('bulk-entry-toggle');
 
             if(type === 'exit') {
                 singleSection.classList.add('hidden');
+                bulkEntrySection.classList.add('hidden');
                 multipleSection.classList.remove('hidden');
+                bulkToggle.checked = false;
+            } else {
+                multipleSection.classList.add('hidden');
+                if(bulkToggle.checked) {
+                    singleSection.classList.add('hidden');
+                    bulkEntrySection.classList.remove('hidden');
+                } else {
+                    singleSection.classList.remove('hidden');
+                    bulkEntrySection.classList.add('hidden');
+                }
+            }
+        }
+
+        function toggleBulkEntry() {
+            const bulkToggle = document.getElementById('bulk-entry-toggle');
+            const singleSection = document.getElementById('single-product-section');
+            const bulkEntrySection = document.getElementById('bulk-entry-section');
+
+            if(bulkToggle.checked) {
+                singleSection.classList.add('hidden');
+                bulkEntrySection.classList.remove('hidden');
             } else {
                 singleSection.classList.remove('hidden');
-                multipleSection.classList.add('hidden');
+                bulkEntrySection.classList.add('hidden');
             }
         }
 
@@ -531,6 +632,42 @@
 
         function removeProductRow(button) {
             const row = button.closest('.product-row');
+            row.remove();
+        }
+
+        function addBulkEntryRow() {
+            const container = document.getElementById('bulk-entry-container');
+            const rowCount = container.children.length;
+            const rowHtml = `
+                <div class="bulk-entry-row grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border border-gray-200 rounded-md">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Producto</label>
+                        <select name="bulk_products[${rowCount}][product_id]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="">Seleccionar producto</option>
+                            <?php
+                            $stmt = $product->read();
+                            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                echo "<option value='{$row['id']}'>{$row['name']}</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Cantidad</label>
+                        <input type="number" name="bulk_products[${rowCount}][quantity]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" min="1">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="button" onclick="removeBulkEntryRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm">
+                            <i class="fas fa-trash mr-1"></i>Eliminar
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', rowHtml);
+        }
+
+        function removeBulkEntryRow(button) {
+            const row = button.closest('.bulk-entry-row');
             row.remove();
         }
     </script>
