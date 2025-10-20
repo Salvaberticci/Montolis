@@ -65,18 +65,21 @@
                 extract($row);
                 $image_path = "uploads/{$image}";
                 $image_src = ($image && file_exists($image_path)) ? $image_path : "images/placeholder.png";
-                $whatsapp_message = urlencode("Hola, me interesa este producto:\n\n{$name}\n{$description}\nPrecio: \${$sale_price}");
+                $whatsapp_message = urlencode("Hola, me interesa este producto:\n\n{$name}\n{$description}\nPrecio: \${$sale_price}\nPrecio al mayor: \${$wholesale_price}");
                 $whatsapp_url = "https://wa.me/584163723527?text={$whatsapp_message}";
                 echo "<div class='product-card bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out'>";
-                echo "<img src='{$image_src}' alt='{$name}' class='w-full h-48 object-cover cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$whatsapp_url}\")'>";
+                echo "<img src='{$image_src}' alt='{$name}' class='w-full h-48 object-cover cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")'>";
                 echo "<div class='p-4'>";
-                echo "<h3 class='text-xl font-bold text-gray-800 mb-2 cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$whatsapp_url}\")'>{$name}</h3>";
-                echo "<p class='text-gray-600 text-sm mb-4 cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$whatsapp_url}\")'>{$description}</p>";
+                echo "<h3 class='text-xl font-bold text-gray-800 mb-2 cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")'>{$name}</h3>";
+                echo "<p class='text-gray-600 text-sm mb-4 cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")'>{$description}</p>";
                 echo "<div class='flex justify-between items-center mb-4'>";
-                echo "<span class='text-2xl font-bold text-green-800'>&#36;{$sale_price}</span>";
+                echo "<div class='flex flex-col'>";
+                echo "<span class='text-lg font-bold text-green-800'>&#36;{$sale_price}</span>";
+                echo "<span class='text-sm text-purple-600'>Mayor: &#36;{$wholesale_price}</span>";
+                echo "</div>";
                 echo "</div>";
                 echo "<div class='flex gap-2'>";
-                echo "<button onclick='quickAddToCart(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$whatsapp_url}\")' class='flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center text-sm'>";
+                echo "<button onclick='quickAddToCart(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")' class='flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center text-sm'>";
                 echo "<i class='fas fa-cart-plus mr-1'></i> Carrito";
                 echo "</button>";
                 echo "<a href='{$whatsapp_url}' target='_blank' class='flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center text-sm'>";
@@ -200,12 +203,12 @@
             document.getElementById('cart-count').textContent = cart.length;
         }
 
-        function openModal(name, description, image, price, whatsappUrl) {
-            currentProduct = { name, description, image, price, whatsappUrl };
+        function openModal(name, description, image, price, wholesalePrice, whatsappUrl) {
+            currentProduct = { name, description, image, price, wholesalePrice, whatsappUrl };
             document.getElementById('modal-title').textContent = name;
             document.getElementById('modal-description').textContent = description;
             document.getElementById('modal-image').src = image;
-            document.getElementById('modal-price').textContent = '$' + price;
+            document.getElementById('modal-price').innerHTML = '$' + price + '<br><small class="text-purple-600">Mayor: $' + wholesalePrice + '</small>';
             document.getElementById('whatsapp-btn').href = whatsappUrl;
             document.getElementById('product-modal').classList.remove('hidden');
             document.getElementById('product-modal').classList.add('flex');
@@ -240,8 +243,8 @@
             showNotification('Producto agregado al carrito', 'success');
         }
 
-        function quickAddToCart(name, description, image, price, whatsappUrl) {
-            const product = { name, description, image, price, whatsappUrl };
+        function quickAddToCart(name, description, image, price, wholesalePrice, whatsappUrl) {
+            const product = { name, description, image, price, wholesalePrice, whatsappUrl };
             cart.push(product);
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();

@@ -49,6 +49,7 @@
         $product->quantity = $_POST['cantidad'];
         $product->product_cost = $_POST['product_cost'];
         $product->sale_price = $_POST['sale_price'];
+        $product->wholesale_price = $_POST['wholesale_price'];
         $product->third_party_sale_price = $_POST['third_party_sale_price'];
         $product->third_party_seller_percentage = $_POST['third_party_seller_percentage'];
 
@@ -160,10 +161,14 @@
                                     <input type="text" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" id="product_cost" name="product_cost" value="<?php echo $product->product_cost; ?>" required>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                                 <div>
                                     <label for="sale_price" class="block text-gray-700 text-sm font-bold mb-2">Precio de Venta (USD)</label>
                                     <input type="text" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" id="sale_price" name="sale_price" value="<?php echo $product->sale_price; ?>" required>
+                                </div>
+                                <div>
+                                    <label for="wholesale_price" class="block text-gray-700 text-sm font-bold mb-2">Precio al Mayor (USD)</label>
+                                    <input type="text" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" id="wholesale_price" name="wholesale_price" value="<?php echo $product->wholesale_price; ?>" required>
                                 </div>
                                 <div>
                                     <label for="third_party_sale_price" class="block text-gray-700 text-sm font-bold mb-2">Precio de Venta para Terceros (USD)</label>

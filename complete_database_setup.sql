@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   `quantity` int(11) NOT NULL DEFAULT 0,
   `product_cost` decimal(10,2) NOT NULL DEFAULT 0.00,
   `sale_price` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `wholesale_price` decimal(10,2) NOT NULL DEFAULT 0.00,
   `third_party_sale_price` decimal(10,2) NOT NULL DEFAULT 0.00,
   `third_party_seller_percentage` decimal(5,2) NOT NULL DEFAULT 0.00,
   `image` varchar(512) DEFAULT NULL,
