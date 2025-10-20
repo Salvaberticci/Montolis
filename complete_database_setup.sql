@@ -53,8 +53,8 @@ CREATE TABLE IF NOT EXISTS `products` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- Insert sample products
-INSERT INTO `products` (`id`, `name`, `description`, `quantity`, `product_cost`, `sale_price`, `third_party_sale_price`, `third_party_seller_percentage`, `image`) VALUES
-(61, 'TERMO STANLEY', 'Termo de acero inoxidable para mantener bebidas calientes o frías durante horas.', 0, 0.00, 35.00, 0.00, 11.43, '68c18b317d636-imagen_2025-09-10_102904962.png'),
+INSERT INTO `products` (`id`, `name`, `description`, `quantity`, `product_cost`, `sale_price`, `wholesale_price`, `third_party_sale_price`, `third_party_seller_percentage`, `image`) VALUES
+(61, 'TERMO STANLEY', 'Termo de acero inoxidable para mantener bebidas calientes o frías durante horas.', 0, 0.00, 35.00, 30.00, 0.00, 11.43, '68c18b317d636-imagen_2025-09-10_102904962.png'),
 (62, 'BOLSO PARA STANLEY', 'Bolso diseñado para transportar termos Stanley de forma segura y cómoda.', 0, 0.00, 10.00, 0.00, 20.00, '68c18b4ac2465-imagen_2025-09-10_102930094.png'),
 (63, 'POWER BANK 3 SALIDAS', 'Batería externa portátil con tres puertos de salida para cargar múltiples dispositivos a la vez.', 0, 0.00, 15.00, 0.00, 20.00, '68c18b72b8b92-imagen_2025-09-10_103008756.png'),
 (64, 'MOUSE PAD MAPA RGB', 'Alfombrilla de ratón con iluminación LED RGB y un diseño de mapa.', 0, 0.00, 15.00, 0.00, 13.33, '68c18b8ee743c-imagen_2025-09-10_103038122.png'),
