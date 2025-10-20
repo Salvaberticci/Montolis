@@ -210,7 +210,7 @@
                                 <div class="product-row grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border border-gray-200 rounded-md">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700">Producto</label>
-                                        <select name="entry_products[0][product_id]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" style="display: block;">
+                                        <select name="entry_products[0][product_id]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required style="display: block;">
                                             <option value="">Seleccionar producto</option>
                                             <?php
                                             $stmt = $product->read();
@@ -222,7 +222,7 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700">Cantidad</label>
-                                        <input type="number" name="entry_products[0][quantity]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" min="1">
+                                        <input type="number" name="entry_products[0][quantity]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required min="1">
                                     </div>
                                     <div class="flex items-end">
                                         <button type="button" onclick="removeEntryProductRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm">
@@ -577,7 +577,7 @@
                 <div class="product-row grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border border-gray-200 rounded-md">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Producto</label>
-                        <select name="entry_products[${rowCount}][product_id]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <select name="entry_products[${rowCount}][product_id]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
                             <option value="">Seleccionar producto</option>
                             <?php
                             $stmt = $product->read();
@@ -589,7 +589,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Cantidad</label>
-                        <input type="number" name="entry_products[${rowCount}][quantity]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" min="1">
+                        <input type="number" name="entry_products[${rowCount}][quantity]" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required min="1">
                     </div>
                     <div class="flex items-end">
                         <button type="button" onclick="removeEntryProductRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm">
