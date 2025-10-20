@@ -75,17 +75,20 @@
                 echo "<div class='flex justify-between items-center mb-4'>";
                 echo "<div class='flex flex-col'>";
                 echo "<span class='text-lg font-bold text-green-800'>&#36;{$sale_price}</span>";
-                echo "<span class='text-sm text-purple-600'>Mayor: &#36;{$wholesale_price}</span>";
+                echo "<span class='text-sm text-purple-600'>Mayor (6+): &#36;{$wholesale_price}</span>";
                 echo "</div>";
                 echo "</div>";
-                echo "<div class='flex gap-2'>";
-                echo "<button onclick='quickAddToCart(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")' class='flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center text-sm'>";
-                echo "<i class='fas fa-cart-plus mr-1'></i> Carrito";
+                echo "<div class='flex gap-2 mb-2'>";
+                echo "<button onclick='quickAddToCart(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\", 1)' class='flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center text-sm'>";
+                echo "<i class='fas fa-cart-plus mr-1'></i> Agregar 1";
                 echo "</button>";
-                echo "<a href='{$whatsapp_url}' target='_blank' class='flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center text-sm'>";
+                echo "<button onclick='quickAddToCart(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\", 6)' class='flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center text-sm'>";
+                echo "<i class='fas fa-shopping-bag mr-1'></i> Mayor (6+)";
+                echo "</button>";
+                echo "</div>";
+                echo "<a href='{$whatsapp_url}' target='_blank' class='w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center text-sm'>";
                 echo "<i class='fab fa-whatsapp mr-1'></i> WhatsApp";
                 echo "</a>";
-                echo "</div>";
                 echo "</div>";
                 echo "</div>";
             }
@@ -144,9 +147,14 @@
                 <div class="flex justify-between items-center mb-6">
                     <span id="modal-price" class="text-3xl font-bold text-green-800"></span>
                 </div>
-                <button onclick="addToCart()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center mb-3">
-                    <i class="fas fa-cart-plus mr-2"></i> Agregar al Carrito
-                </button>
+                <div class="flex gap-2 mb-3">
+                    <button onclick="addToCart(1)" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center">
+                        <i class="fas fa-cart-plus mr-2"></i> Agregar 1
+                    </button>
+                    <button onclick="addToCart(6)" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center">
+                        <i class="fas fa-shopping-bag mr-2"></i> Mayor (6+)
+                    </button>
+                </div>
                 <a id="whatsapp-btn" href="#" target="_blank" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center">
                     <i class="fab fa-whatsapp mr-2"></i> Contactar por WhatsApp
                 </a>
@@ -235,20 +243,37 @@
             });
         }
 
-        function addToCart() {
-            cart.push(currentProduct);
-            localStorage.setItem('cart', JSON.stringify(cart));
-            updateCartCount();
-            closeModal();
-            showNotification('Producto agregado al carrito', 'success');
-        }
-
-        function quickAddToCart(name, description, image, price, wholesalePrice, whatsappUrl) {
-            const product = { name, description, image, price, wholesalePrice, whatsappUrl };
+        function addToCart(quantity = 1) {
+            const product = {
+                ...currentProduct,
+                price: quantity >= 6 ? currentProduct.wholesalePrice : currentProduct.price,
+                quantity,
+                isWholesale: quantity >= 6
+            };
             cart.push(product);
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
-            showNotification('Producto agregado al carrito', 'success');
+            closeModal();
+            const message = quantity >= 6 ? `Agregado ${quantity} unidades al mayor al carrito` : `Producto agregado al carrito`;
+            showNotification(message, 'success');
+        }
+
+        function quickAddToCart(name, description, image, price, wholesalePrice, whatsappUrl, quantity = 1) {
+            const product = {
+                name,
+                description,
+                image,
+                price: quantity >= 6 ? wholesalePrice : price,
+                wholesalePrice,
+                whatsappUrl,
+                quantity,
+                isWholesale: quantity >= 6
+            };
+            cart.push(product);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            const message = quantity >= 6 ? `Agregado ${quantity} unidades al mayor al carrito` : `Producto agregado al carrito`;
+            showNotification(message, 'success');
         }
 
         function openCart() {
@@ -287,14 +312,16 @@
                 cartItems.innerHTML = '<p class="text-gray-500 text-center py-8">El carrito está vacío</p>';
             } else {
                 cart.forEach((item, index) => {
-                    total += parseFloat(item.price);
+                    const itemTotal = parseFloat(item.price) * (item.quantity || 1);
+                    total += itemTotal;
+                    const priceType = item.isWholesale ? ' (Mayor)' : '';
                     cartItems.innerHTML += `
                         <div class="flex items-center justify-between py-2 border-b">
                             <div class="flex items-center">
                                 <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-cover rounded mr-3">
                                 <div>
                                     <h4 class="font-semibold">${item.name}</h4>
-                                    <p class="text-sm text-gray-600">$${item.price}</p>
+                                    <p class="text-sm text-gray-600">$${item.price}${priceType} x ${item.quantity || 1} = $${itemTotal.toFixed(2)}</p>
                                 </div>
                             </div>
                             <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700">
@@ -325,8 +352,11 @@
             let total = 0;
 
             cart.forEach((item, index) => {
-                message += `${index + 1}. ${item.name} - $${item.price}\n`;
-                total += parseFloat(item.price);
+                const quantity = item.quantity || 1;
+                const priceType = item.isWholesale ? ' (precio al mayor)' : '';
+                const itemTotal = parseFloat(item.price) * quantity;
+                message += `${index + 1}. ${item.name} - $${item.price}${priceType} x ${quantity} = $${itemTotal.toFixed(2)}\n`;
+                total += itemTotal;
             });
 
             message += `\nTotal: $${total.toFixed(2)}`;
