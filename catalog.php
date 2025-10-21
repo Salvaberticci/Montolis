@@ -477,12 +477,16 @@
                 const quantity = item.quantity || 1;
                 const priceType = item.isWholesale ? ' (precio al mayor)' : ' (precio al detal)';
                 const itemPrice = parseFloat(item.price);
-                const itemTotal = itemPrice * quantity;
+                const itemPriceWithIva = itemPrice * (1 + ivaRate);
+                const itemTotal = itemPriceWithIva * quantity;
                 message += `${index + 1}. ${item.name} - $${itemPrice.toFixed(2)}${priceType} x ${quantity} = $${itemTotal.toFixed(2)}\n`;
                 subtotal += itemPrice * quantity;
             });
 
-            message += `\nTotal: $${subtotal.toFixed(2)}`;
+            const ivaAmount = subtotal * ivaRate;
+            const total = subtotal + ivaAmount;
+
+            message += `\nTotal: $${total.toFixed(2)}`;
 
             const whatsappUrl = `https://wa.me/584163723527?text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
