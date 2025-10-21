@@ -135,22 +135,63 @@ CREATE TABLE IF NOT EXISTS `sales` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- --------------------------------------------------------
--- Table structure for table `inventory_movements`
+-- Table structure for table `categories`
 -- --------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS `inventory_movements` (
+CREATE TABLE IF NOT EXISTS `categories` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `product_id` int(11) NOT NULL,
-  `type` enum('entry','exit') NOT NULL,
-  `quantity` int(11) NOT NULL,
-  `reason` varchar(255) NOT NULL,
-  `date` timestamp DEFAULT CURRENT_TIMESTAMP,
-  `client_name` varchar(100) DEFAULT NULL,
-  `client_contact` varchar(100) DEFAULT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` text,
+  `color` varchar(7) DEFAULT '#3B82F6',
+  `icon` varchar(50) DEFAULT 'fas fa-tag',
+  `is_active` tinyint(1) DEFAULT 1,
+  `sort_order` int(11) DEFAULT 0,
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `product_id` (`product_id`),
-  CONSTRAINT `inventory_movements_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+  UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+-- Insert default categories
+INSERT INTO `categories` (`name`, `description`, `color`, `icon`, `sort_order`) VALUES
+('General', 'Categoría general para productos sin clasificación específica', '#6B7280', 'fas fa-tag', 1),
+('Electrónicos', 'Productos electrónicos y gadgets', '#3B82F6', 'fas fa-mobile-alt', 2),
+('Hogar', 'Artículos para el hogar y decoración', '#10B981', 'fas fa-home', 3),
+('Deportes', 'Equipamiento deportivo y recreativo', '#F59E0B', 'fas fa-futbol', 4),
+('Belleza', 'Productos de belleza y cuidado personal', '#EC4899', 'fas fa-spa', 5),
+('Ropa', 'Ropa y accesorios', '#8B5CF6', 'fas fa-tshirt', 6),
+('Juguetes', 'Juguetes y entretenimiento infantil', '#F97316', 'fas fa-gamepad', 7),
+('Libros', 'Libros y material educativo', '#6366F1', 'fas fa-book', 8),
+('Automotriz', 'Accesorios y productos para vehículos', '#374151', 'fas fa-car', 9),
+('Salud', 'Productos de salud y bienestar', '#EF4444', 'fas fa-heartbeat', 10);
+
+-- --------------------------------------------------------
+-- Table structure for table `catalog_settings`
+-- --------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `catalog_settings` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `setting_key` varchar(50) NOT NULL,
+  `setting_value` text NOT NULL,
+  `setting_description` text,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `setting_key` (`setting_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+-- Insert default catalog settings
+INSERT INTO `catalog_settings` (`setting_key`, `setting_value`, `setting_description`) VALUES
+('show_out_of_stock', '1', 'Mostrar productos sin stock en el catálogo público'),
+('wholesale_minimum', '4', 'Cantidad mínima para aplicar precio al mayor'),
+('catalog_title', 'Catálogo de Productos - Montoli\'s', 'Título del catálogo público'),
+('catalog_description', 'Descubre nuestra amplia gama de productos de calidad', 'Descripción del catálogo'),
+('show_third_party_prices', '1', 'Mostrar precios para terceros en el catálogo público'),
+('products_per_page', '12', 'Número de productos por página en el catálogo'),
+('enable_product_search', '1', 'Habilitar búsqueda de productos'),
+('enable_category_filter', '1', 'Habilitar filtro por categorías');
+
+-- --------------------------------------------------------
+-- Table structure for table `inventory_movements`
+-- --------------------------------------------------------
 
 -- Set AUTO_INCREMENT values
 ALTER TABLE `products` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;

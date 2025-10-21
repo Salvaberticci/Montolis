@@ -23,24 +23,31 @@
     <?php
     include_once 'config/database.php';
     include_once 'objects/product.php';
+    include_once 'objects/settings.php';
 
     $database = new Database();
     $db = $database->getConnection();
 
     $product = new Product($db);
+    $settings = new Settings($db);
 
     $search_term = isset($_GET['s']) ? $_GET['s'] : '';
 
+    // Apply settings-based filtering
     if($search_term){
         $stmt = $product->search($search_term);
     } else {
-        $stmt = $product->readInStock();
+        if($settings->getShowOutOfStock()) {
+            $stmt = $product->read(); // Show all products including out of stock
+        } else {
+            $stmt = $product->readInStock(); // Only show products in stock
+        }
     }
     ?>
     <header class="bg-green-800 shadow-md p-4 flex justify-between items-center sticky top-0 z-20">
         <div class="flex items-center">
             <img src="images/logo.png" alt="Montoli's Logo" class="h-12 mr-3">
-            <h1 class="text-3xl font-bold text-white">Catálogo de Productos</h1>
+            <h1 class="text-3xl font-bold text-white"><?php echo htmlspecialchars($settings->getCatalogTitle()); ?></h1>
         </div>
         <div class="flex items-center">
             <button onclick="openCart()" class="text-white hover:text-gray-200 relative">
@@ -53,12 +60,15 @@
     <main class="p-6">
         <div class="mb-6">
             <div class="flex flex-col sm:flex-row gap-4 max-w-4xl mx-auto">
+                <?php if($settings->getEnableProductSearch()): ?>
                 <form action="catalog.php" method="get" class="flex items-center flex-1 bg-white rounded-full shadow-md">
                     <input type="text" name="s" placeholder="Buscar productos..." value="<?php echo htmlspecialchars($search_term); ?>" class="w-full px-6 py-3 rounded-full focus:outline-none" id="search-input">
                     <button type="submit" class="bg-green-800 text-white rounded-full p-3 hover:bg-green-700 focus:outline-none mx-1">
                         <i class="fas fa-search"></i>
                     </button>
                 </form>
+                <?php endif; ?>
+                <?php if($settings->getEnableCategoryFilter()): ?>
                 <div class="flex items-center bg-white rounded-full shadow-md px-4 py-3">
                     <label for="category-filter" class="text-gray-700 mr-2">Categoría:</label>
                     <select id="category-filter" class="bg-transparent focus:outline-none text-gray-700">
@@ -66,11 +76,12 @@
                         <?php
                         $categories_stmt = $product->getCategories();
                         while ($cat_row = $categories_stmt->fetch(PDO::FETCH_ASSOC)) {
-                            echo "<option value='" . htmlspecialchars($cat_row['category']) . "'>" . htmlspecialchars($cat_row['category']) . "</option>";
+                            echo "<option value='" . htmlspecialchars($cat_row['name']) . "'>" . htmlspecialchars($cat_row['name']) . "</option>";
                         }
                         ?>
                     </select>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
         <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

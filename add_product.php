@@ -30,11 +30,13 @@
 
     include_once 'config/database.php';
     include_once 'objects/product.php';
+    include_once 'objects/category.php';
 
     $database = new Database();
     $db = $database->getConnection();
 
     $product = new Product($db);
+    $category = new Category($db);
     $message = '';
     if($_POST){
         $product->name = $_POST['nombre'];
@@ -133,16 +135,12 @@
                             <div class="mb-6">
                                 <label for="categoria" class="block text-gray-700 text-sm font-bold mb-2">Categoría</label>
                                 <select class="shadow appearance-none border rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200 text-base" id="categoria" name="categoria" required style="min-height: 44px;">
-                                    <option value="General">General</option>
-                                    <option value="Electrónicos">Electrónicos</option>
-                                    <option value="Hogar">Hogar</option>
-                                    <option value="Deportes">Deportes</option>
-                                    <option value="Belleza">Belleza</option>
-                                    <option value="Ropa">Ropa</option>
-                                    <option value="Juguetes">Juguetes</option>
-                                    <option value="Libros">Libros</option>
-                                    <option value="Automotriz">Automotriz</option>
-                                    <option value="Salud">Salud</option>
+                                    <?php
+                                    $stmt = $category->readActive();
+                                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                        echo "<option value='" . htmlspecialchars($row['name']) . "'>" . htmlspecialchars($row['name']) . "</option>";
+                                    }
+                                    ?>
                                 </select>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">

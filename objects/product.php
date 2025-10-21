@@ -160,10 +160,10 @@ class Product {
     }
 
     function getCategories() {
-        $query = "SELECT DISTINCT category FROM " . $this->table_name . " ORDER BY category";
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        return $stmt;
+        // Import Category class dynamically
+        require_once 'category.php';
+        $category = new Category($this->conn);
+        return $category->readActive();
     }
 
     function readByCategory($category) {
