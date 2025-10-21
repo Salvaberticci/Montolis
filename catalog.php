@@ -103,8 +103,8 @@
                 echo "<p class='text-xs text-blue-600 mb-4'>Categoría: {$category}</p>";
                 echo "<div class='flex justify-between items-center mb-4'>";
                 echo "<div class='flex flex-col'>";
-                echo "<span class='text-2xl font-bold text-green-800'>&#36;{$sale_price}</span>";
-                echo "<span class='text-lg font-semibold text-purple-600'>Mayor (4+): &#36;{$wholesale_price}</span>";
+                echo "<span class='text-2xl font-bold text-purple-600'>Mayor (4+): &#36;{$wholesale_price}</span>";
+                echo "<span class='text-lg font-semibold text-green-800'>Detal: &#36;{$sale_price}</span>";
                 echo "</div>";
                 echo "</div>";
                 echo "<div class='flex gap-2 mb-2'>";
