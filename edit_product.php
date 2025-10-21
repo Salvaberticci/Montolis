@@ -52,6 +52,7 @@
         $product->wholesale_price = $_POST['wholesale_price'];
         $product->third_party_sale_price = $_POST['third_party_sale_price'];
         $product->third_party_seller_percentage = $_POST['third_party_seller_percentage'];
+        $product->category = $_POST['categoria'];
 
         // --- Handle image upload without validation ---
         if (!empty($_FILES['image']['name'])) {
@@ -150,6 +151,21 @@
                             <div class="mb-6">
                                 <label for="descripcion" class="block text-gray-700 text-sm font-bold mb-2">Descripción</label>
                                 <textarea class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" id="descripcion" name="descripcion" rows="4" required><?php echo $product->description; ?></textarea>
+                            </div>
+                            <div class="mb-6">
+                                <label for="categoria" class="block text-gray-700 text-sm font-bold mb-2">Categoría</label>
+                                <select class="shadow appearance-none border rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200 text-base" id="categoria" name="categoria" required style="min-height: 44px;">
+                                    <option value="General" <?php echo ($product->category == 'General') ? 'selected' : ''; ?>>General</option>
+                                    <option value="Electrónicos" <?php echo ($product->category == 'Electrónicos') ? 'selected' : ''; ?>>Electrónicos</option>
+                                    <option value="Hogar" <?php echo ($product->category == 'Hogar') ? 'selected' : ''; ?>>Hogar</option>
+                                    <option value="Deportes" <?php echo ($product->category == 'Deportes') ? 'selected' : ''; ?>>Deportes</option>
+                                    <option value="Belleza" <?php echo ($product->category == 'Belleza') ? 'selected' : ''; ?>>Belleza</option>
+                                    <option value="Ropa" <?php echo ($product->category == 'Ropa') ? 'selected' : ''; ?>>Ropa</option>
+                                    <option value="Juguetes" <?php echo ($product->category == 'Juguetes') ? 'selected' : ''; ?>>Juguetes</option>
+                                    <option value="Libros" <?php echo ($product->category == 'Libros') ? 'selected' : ''; ?>>Libros</option>
+                                    <option value="Automotriz" <?php echo ($product->category == 'Automotriz') ? 'selected' : ''; ?>>Automotriz</option>
+                                    <option value="Salud" <?php echo ($product->category == 'Salud') ? 'selected' : ''; ?>>Salud</option>
+                                </select>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
                                 <div>

@@ -46,6 +46,7 @@ class CatalogPDF extends TCPDF {
             case 'owner':
                 $this->Cell(20, 8, 'Costo', 0, 0, 'C');
                 $this->Cell(20, 8, 'Venta', 0, 0, 'C');
+                $this->Cell(20, 8, 'Venta 3ros', 0, 0, 'C');
                 $this->Cell(20, 8, 'Stock', 0, 0, 'C');
                 break;
             case 'seller':
@@ -124,8 +125,9 @@ try {
         switch ($type) {
             case 'owner':
                 $pdf->MultiCell(20, $row_height, '$' . $p['product_cost'], 0, 'C', false, 0, 135, $current_y, true, 0, false, true, $row_height, 'M');
-                $pdf->MultiCell(20, $row_height, '$' . $p['third_party_sale_price'], 0, 'C', false, 0, 155, $current_y, true, 0, false, true, $row_height, 'M');
-                $pdf->MultiCell(20, $row_height, $p['quantity'], 0, 'C', false, 1, 175, $current_y, true, 0, false, true, $row_height, 'M');
+                $pdf->MultiCell(20, $row_height, '$' . $p['sale_price'], 0, 'C', false, 0, 155, $current_y, true, 0, false, true, $row_height, 'M');
+                $pdf->MultiCell(20, $row_height, '$' . $p['third_party_sale_price'], 0, 'C', false, 0, 175, $current_y, true, 0, false, true, $row_height, 'M');
+                $pdf->MultiCell(20, $row_height, $p['quantity'], 0, 'C', false, 1, 195, $current_y, true, 0, false, true, $row_height, 'M');
                 break;
             case 'seller':
                 $pdf->MultiCell(30, $row_height, '$' . $p['wholesale_price'], 0, 'C', false, 0, 135, $current_y, true, 0, false, true, $row_height, 'M');

@@ -52,12 +52,26 @@
 
     <main class="p-6">
         <div class="mb-6">
-            <form action="catalog.php" method="get" class="flex items-center max-w-lg mx-auto bg-white rounded-full shadow-md">
-                <input type="text" name="s" placeholder="Buscar productos..." value="<?php echo htmlspecialchars($search_term); ?>" class="w-full px-6 py-3 rounded-full focus:outline-none" id="search-input">
-                <button type="submit" class="bg-green-800 text-white rounded-full p-3 hover:bg-green-700 focus:outline-none mx-1">
-                    <i class="fas fa-search"></i>
-                </button>
-            </form>
+            <div class="flex flex-col sm:flex-row gap-4 max-w-4xl mx-auto">
+                <form action="catalog.php" method="get" class="flex items-center flex-1 bg-white rounded-full shadow-md">
+                    <input type="text" name="s" placeholder="Buscar productos..." value="<?php echo htmlspecialchars($search_term); ?>" class="w-full px-6 py-3 rounded-full focus:outline-none" id="search-input">
+                    <button type="submit" class="bg-green-800 text-white rounded-full p-3 hover:bg-green-700 focus:outline-none mx-1">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+                <div class="flex items-center bg-white rounded-full shadow-md px-4 py-3">
+                    <label for="category-filter" class="text-gray-700 mr-2">Categoría:</label>
+                    <select id="category-filter" class="bg-transparent focus:outline-none text-gray-700">
+                        <option value="">Todas las Categorías</option>
+                        <?php
+                        $categories_stmt = $product->getCategories();
+                        while ($cat_row = $categories_stmt->fetch(PDO::FETCH_ASSOC)) {
+                            echo "<option value='" . htmlspecialchars($cat_row['category']) . "'>" . htmlspecialchars($cat_row['category']) . "</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+            </div>
         </div>
         <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <?php
@@ -70,15 +84,16 @@
                 $wholesale_with_iva = $wholesale_price * (1 + $iva_rate);
                 $whatsapp_message = urlencode("Hola, me interesa este producto:\n\n{$name}\n{$description}\nPrecio: \${$price_with_iva} (incluye IVA 16%)\nPrecio al mayor: \${$wholesale_with_iva} (incluye IVA 16%)");
                 $whatsapp_url = "https://wa.me/584163723527?text={$whatsapp_message}";
-                echo "<div class='product-card bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out'>";
+                echo "<div class='product-card bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out' data-category='" . htmlspecialchars($category) . "'>";
                 echo "<img src='{$image_src}' alt='{$name}' class='w-full h-48 object-cover cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")'>";
                 echo "<div class='p-4'>";
                 echo "<h3 class='text-xl font-bold text-gray-800 mb-2 cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")'>{$name}</h3>";
-                echo "<p class='text-gray-600 text-sm mb-4 cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")'>{$description}</p>";
+                echo "<p class='text-gray-600 text-sm mb-2 cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")'>{$description}</p>";
+                echo "<p class='text-xs text-blue-600 mb-4'>Categoría: {$category}</p>";
                 echo "<div class='flex justify-between items-center mb-4'>";
                 echo "<div class='flex flex-col'>";
                 echo "<span class='text-lg font-bold text-green-800'>&#36;{$sale_price}</span>";
-                echo "<span class='text-sm text-purple-600'>Mayor (6+): &#36;{$wholesale_price}</span>";
+                echo "<span class='text-sm text-purple-600'>Mayor (4+): &#36;{$wholesale_price}</span>";
                 echo "</div>";
                 echo "</div>";
                 echo "<div class='flex gap-2 mb-2'>";
@@ -86,7 +101,7 @@
                 echo "<i class='fas fa-cart-plus mr-1'></i> Agregar 1";
                 echo "</button>";
                 echo "<button onclick='openWholesaleModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")' class='flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center text-sm'>";
-                echo "<i class='fas fa-shopping-bag mr-1'></i> Mayor (6+)";
+                echo "<i class='fas fa-shopping-bag mr-1'></i> Mayor (4+)";
                 echo "</button>";
                 echo "</div>";
                 echo "<a href='{$whatsapp_url}' target='_blank' class='w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center text-sm'>";
@@ -126,6 +141,22 @@
             "retina_detect": true
         });
 
+        // Category filtering
+        const categoryFilter = document.getElementById('category-filter');
+        const productCards = document.querySelectorAll('.product-card');
+
+        categoryFilter.addEventListener('change', function() {
+            const selectedCategory = this.value;
+
+            productCards.forEach(card => {
+                if (selectedCategory === '' || card.dataset.category === selectedCategory) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
         anime({
             targets: '.product-card',
             translateY: [50, 0],
@@ -155,7 +186,7 @@
                         <i class="fas fa-cart-plus mr-2"></i> Agregar 1
                     </button>
                     <button onclick="openWholesaleModalFromModal()" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center">
-                        <i class="fas fa-shopping-bag mr-2"></i> Mayor (6+)
+                        <i class="fas fa-shopping-bag mr-2"></i> Mayor (4+)
                     </button>
                 </div>
                 <a id="whatsapp-btn" href="#" target="_blank" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center">
@@ -202,8 +233,8 @@
                     </button>
                 </div>
                 <div class="mb-4">
-                    <label for="wholesale-quantity" class="block text-sm font-medium text-gray-700 mb-2">Cantidad (mínimo 6):</label>
-                    <input type="number" id="wholesale-quantity" min="6" value="6" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                    <label for="wholesale-quantity" class="block text-sm font-medium text-gray-700 mb-2">Cantidad (mínimo 4):</label>
+                    <input type="number" id="wholesale-quantity" min="4" value="4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500">
                 </div>
                 <button onclick="addWholesaleToCart()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center">
                     <i class="fas fa-shopping-bag mr-2"></i> Agregar al Carrito
@@ -243,7 +274,8 @@
             const ivaRate = 0.16;
             const priceWithIva = (parseFloat(price) * (1 + ivaRate)).toFixed(2);
             const wholesaleWithIva = (parseFloat(wholesalePrice) * (1 + ivaRate)).toFixed(2);
-            document.getElementById('modal-price').innerHTML = '$' + priceWithIva + ' (IVA incluido)<br><small class="text-purple-600">Mayor: $' + wholesaleWithIva + ' (IVA incluido)</small>';
+            const thirdPartyWithIva = (parseFloat(third_party_sale_price) * (1 + ivaRate)).toFixed(2);
+            document.getElementById('modal-price').innerHTML = '$' + priceWithIva + ' (IVA incluido)<br><small class="text-purple-600">Mayor: $' + wholesaleWithIva + ' (IVA incluido)</small><br><small class="text-blue-600">Terceros: $' + thirdPartyWithIva + ' (IVA incluido)</small>';
             document.getElementById('whatsapp-btn').href = whatsappUrl;
             document.getElementById('product-modal').classList.remove('hidden');
             document.getElementById('product-modal').classList.add('flex');
@@ -273,15 +305,15 @@
         function addToCart(quantity = 1) {
             const product = {
                 ...currentProduct,
-                price: quantity >= 6 ? currentProduct.wholesalePrice : currentProduct.price,
+                price: quantity >= 4 ? currentProduct.wholesalePrice : currentProduct.price,
                 quantity,
-                isWholesale: quantity >= 6
+                isWholesale: quantity >= 4
             };
             cart.push(product);
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
             closeModal();
-            const message = quantity >= 6 ? `Agregado ${quantity} unidades al mayor al carrito` : `Producto agregado al carrito`;
+            const message = quantity >= 4 ? `Agregado ${quantity} unidades al mayor al carrito` : `Producto agregado al carrito`;
             showNotification(message, 'success');
         }
 
@@ -319,8 +351,8 @@
 
         function addWholesaleToCart() {
             const quantity = parseInt(document.getElementById('wholesale-quantity').value);
-            if (quantity < 6) {
-                showNotification('La cantidad mínima para compra al mayor es 6 unidades', 'error');
+            if (quantity < 4) {
+                showNotification('La cantidad mínima para compra al mayor es 4 unidades', 'error');
                 return;
             }
             const product = {
@@ -341,16 +373,16 @@
                 name,
                 description,
                 image,
-                price: quantity >= 6 ? wholesalePrice : price,
+                price: quantity >= 4 ? wholesalePrice : price,
                 wholesalePrice,
                 whatsappUrl,
                 quantity,
-                isWholesale: quantity >= 6
+                isWholesale: quantity >= 4
             };
             cart.push(product);
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
-            const message = quantity >= 6 ? `Agregado ${quantity} unidades al mayor al carrito` : `Producto agregado al carrito`;
+            const message = quantity >= 4 ? `Agregado ${quantity} unidades al mayor al carrito` : `Producto agregado al carrito`;
             showNotification(message, 'success');
         }
 

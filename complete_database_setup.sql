@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   `wholesale_price` decimal(10,2) NOT NULL DEFAULT 0.00,
   `third_party_sale_price` decimal(10,2) NOT NULL DEFAULT 0.00,
   `third_party_seller_percentage` decimal(5,2) NOT NULL DEFAULT 0.00,
+  `category` varchar(100) NOT NULL DEFAULT 'General',
   `image` varchar(512) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;

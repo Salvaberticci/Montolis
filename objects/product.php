@@ -13,20 +13,21 @@ class Product {
     public $wholesale_price;
     public $third_party_sale_price;
     public $third_party_seller_percentage;
+    public $category;
 
     public function __construct($db) {
         $this->conn = $db;
     }
 
     function read() {
-        $query = "SELECT id, name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, image FROM " . $this->table_name . " ORDER BY id DESC";
+        $query = "SELECT id, name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, category, image FROM " . $this->table_name . " ORDER BY id DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt;
     }
 
     function create() {
-        $query = "INSERT INTO " . $this->table_name . " SET name=:name, description=:description, quantity=:quantity, product_cost=:product_cost, sale_price=:sale_price, wholesale_price=:wholesale_price, third_party_sale_price=:third_party_sale_price, third_party_seller_percentage=:third_party_seller_percentage, image=:image";
+        $query = "INSERT INTO " . $this->table_name . " SET name=:name, description=:description, quantity=:quantity, product_cost=:product_cost, sale_price=:sale_price, wholesale_price=:wholesale_price, third_party_sale_price=:third_party_sale_price, third_party_seller_percentage=:third_party_seller_percentage, category=:category, image=:image";
         $stmt = $this->conn->prepare($query);
 
         $this->name=htmlspecialchars(strip_tags($this->name));
@@ -37,6 +38,7 @@ class Product {
         $this->wholesale_price=htmlspecialchars(strip_tags($this->wholesale_price));
         $this->third_party_sale_price=htmlspecialchars(strip_tags($this->third_party_sale_price));
         $this->third_party_seller_percentage=htmlspecialchars(strip_tags($this->third_party_seller_percentage));
+        $this->category=htmlspecialchars(strip_tags($this->category));
         $this->image=htmlspecialchars(strip_tags($this->image));
 
         $stmt->bindParam(":name", $this->name);
@@ -47,6 +49,7 @@ class Product {
         $stmt->bindParam(":wholesale_price", $this->wholesale_price);
         $stmt->bindParam(":third_party_sale_price", $this->third_party_sale_price);
         $stmt->bindParam(":third_party_seller_percentage", $this->third_party_seller_percentage);
+        $stmt->bindParam(":category", $this->category);
         $stmt->bindParam(":image", $this->image);
 
         if($stmt->execute()) {
@@ -56,7 +59,7 @@ class Product {
     }
 
     function readOne(){
-        $query = "SELECT name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, image FROM " . $this->table_name . " WHERE id = ? LIMIT 0,1";
+        $query = "SELECT name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, category, image FROM " . $this->table_name . " WHERE id = ? LIMIT 0,1";
         $stmt = $this->conn->prepare( $query );
         $stmt->bindParam(1, $this->id);
         $stmt->execute();
@@ -69,12 +72,13 @@ class Product {
         $this->wholesale_price = $row['wholesale_price'];
         $this->third_party_sale_price = $row['third_party_sale_price'];
         $this->third_party_seller_percentage = $row['third_party_seller_percentage'];
+        $this->category = $row['category'];
         $this->image = $row['image'];
     }
 
     function update(){
-        // Add `image = :image` to the query
-        $query = "UPDATE " . $this->table_name . " SET name = :name, description = :description, quantity = :quantity, product_cost = :product_cost, sale_price = :sale_price, wholesale_price = :wholesale_price, third_party_sale_price = :third_party_sale_price, third_party_seller_percentage = :third_party_seller_percentage, image = :image WHERE id = :id";
+        // Add `image = :image` and `category = :category` to the query
+        $query = "UPDATE " . $this->table_name . " SET name = :name, description = :description, quantity = :quantity, product_cost = :product_cost, sale_price = :sale_price, wholesale_price = :wholesale_price, third_party_sale_price = :third_party_sale_price, third_party_seller_percentage = :third_party_seller_percentage, category = :category, image = :image WHERE id = :id";
         $stmt = $this->conn->prepare($query);
 
         $this->name=htmlspecialchars(strip_tags($this->name));
@@ -85,6 +89,7 @@ class Product {
         $this->wholesale_price=htmlspecialchars(strip_tags($this->wholesale_price));
         $this->third_party_sale_price=htmlspecialchars(strip_tags($this->third_party_sale_price));
         $this->third_party_seller_percentage=htmlspecialchars(strip_tags($this->third_party_seller_percentage));
+        $this->category=htmlspecialchars(strip_tags($this->category));
         $this->image=htmlspecialchars(strip_tags($this->image)); // Sanitize image
         $this->id=htmlspecialchars(strip_tags($this->id));
 
@@ -96,6 +101,7 @@ class Product {
         $stmt->bindParam(':wholesale_price', $this->wholesale_price);
         $stmt->bindParam(':third_party_sale_price', $this->third_party_sale_price);
         $stmt->bindParam(':third_party_seller_percentage', $this->third_party_seller_percentage);
+        $stmt->bindParam(':category', $this->category);
         $stmt->bindParam(':image', $this->image); // Bind image
         $stmt->bindParam(':id', $this->id);
 
@@ -133,7 +139,7 @@ class Product {
     }
 
     function search($keywords){
-        $query = "SELECT id, name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, image FROM " . $this->table_name . " WHERE (name LIKE ? OR description LIKE ?) AND quantity > 0 ORDER BY id DESC";
+        $query = "SELECT id, name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, category, image FROM " . $this->table_name . " WHERE (name LIKE ? OR description LIKE ?) AND quantity > 0 ORDER BY id DESC";
         $stmt = $this->conn->prepare($query);
 
         $keywords=htmlspecialchars(strip_tags($keywords));
@@ -147,8 +153,23 @@ class Product {
     }
 
     function readInStock() {
-        $query = "SELECT id, name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, image FROM " . $this->table_name . " WHERE quantity > 0 ORDER BY id DESC";
+        $query = "SELECT id, name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, category, image FROM " . $this->table_name . " WHERE quantity > 0 ORDER BY id DESC";
         $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt;
+    }
+
+    function getCategories() {
+        $query = "SELECT DISTINCT category FROM " . $this->table_name . " ORDER BY category";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt;
+    }
+
+    function readByCategory($category) {
+        $query = "SELECT id, name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, category, image FROM " . $this->table_name . " WHERE category = ? AND quantity > 0 ORDER BY id DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $category);
         $stmt->execute();
         return $stmt;
     }

@@ -123,20 +123,35 @@ $stmt = $product->read();
                 </div>
 
                 <div class="mt-8">
-                    <h3 class="text-2xl font-bold mb-6 text-gray-700">Listado de Productos</h3>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-700">Listado de Productos</h3>
+                        <div class="mt-4 sm:mt-0">
+                            <label for="category-filter" class="block text-sm font-medium text-gray-700 mb-1">Filtrar por Categoría:</label>
+                            <select id="category-filter" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Todas las Categorías</option>
+                                <?php
+                                $categories_stmt = $product->getCategories();
+                                while ($cat_row = $categories_stmt->fetch(PDO::FETCH_ASSOC)) {
+                                    echo "<option value='" . htmlspecialchars($cat_row['category']) . "'>" . htmlspecialchars($cat_row['category']) . "</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                    </div>
 
                     <!-- Mobile Card View -->
-                    <div class="block md:hidden space-y-4">
+                    <div class="block md:hidden space-y-4" id="mobile-products">
                         <?php
                         $stmt_mobile = $product->read();
                         while ($row = $stmt_mobile->fetch(PDO::FETCH_ASSOC)){
                             extract($row);
-                            echo "<div class='bg-white rounded-lg shadow-xl p-4'>";
+                            echo "<div class='bg-white rounded-lg shadow-xl p-4 product-card' data-category='" . htmlspecialchars($category) . "'>";
                             echo "<div class='flex items-center mb-3'>";
                             echo $image ? "<img src='uploads/{$image}' class='h-16 w-16 rounded-full object-cover mr-4 shadow-md' />" : "<img src='images/placeholder.png' class='h-16 w-16 rounded-full object-cover mr-4 shadow-md' />";
                             echo "<div class='flex-1'>";
                             echo "<h4 class='font-bold text-lg text-gray-900'>{$name}</h4>";
                             echo "<p class='text-gray-600 text-sm'>{$description}</p>";
+                            echo "<p class='text-xs text-gray-500 mt-1'>Categoría: {$category}</p>";
                             echo "</div>";
                             echo "</div>";
                             echo "<div class='grid grid-cols-2 gap-4 mb-3'>";
@@ -161,13 +176,14 @@ $stmt = $product->read();
                     </div>
 
                     <!-- Desktop Table View -->
-                    <div class="hidden md:block overflow-x-auto bg-white rounded-lg shadow-xl">
+                    <div class="hidden md:block overflow-x-auto bg-white rounded-lg shadow-xl" id="desktop-products">
                         <div class="min-w-full overflow-x-auto">
                             <table class="min-w-full">
                                 <thead class="bg-gray-200">
                                     <tr>
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                                    <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Costo (USD)</th>
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venta (USD)</th>
@@ -179,13 +195,15 @@ $stmt = $product->read();
                             </thead>
                             <tbody class="divide-y divide-gray-200">
                                 <?php
+                                $stmt->execute(); // Re-execute to reset the cursor
                                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
                                     extract($row);
-                                    echo "<tr class='table-row'>";
+                                    echo "<tr class='table-row' data-category='" . htmlspecialchars($category) . "'>";
                                         echo "<td class='py-4 px-6 whitespace-nowrap flex items-center'>";
                                         echo $image ? "<img src='uploads/{$image}' class='h-12 w-12 rounded-full object-cover mr-4 shadow-md' />" : "<img src='images/placeholder.png' class='h-12 w-12 rounded-full object-cover mr-4 shadow-md' />";
                                         echo "<span class='font-medium text-gray-900'>{$name}</span></td>";
                                         echo "<td class='py-4 px-6 text-gray-500'>{$description}</td>";
+                                        echo "<td class='py-4 px-6 text-gray-500'>{$category}</td>";
                                         echo "<td class='py-4 px-6 text-gray-500'>{$quantity}</td>";
                                         echo "<td class='py-4 px-6 text-green-600 font-semibold'>&#36;{$product_cost}</td>";
                                         echo "<td class='py-4 px-6 text-blue-600 font-semibold'>&#36;{$sale_price}</td>";
@@ -263,6 +281,31 @@ $stmt = $product->read();
                 if (window.innerWidth < 768 && sidebar.classList.contains('sidebar-open-mobile')) {
                     sidebar.classList.remove('sidebar-open-mobile');
                 }
+            });
+
+            // Category filtering
+            const categoryFilter = document.getElementById('category-filter');
+            const mobileProducts = document.querySelectorAll('#mobile-products .product-card');
+            const desktopRows = document.querySelectorAll('#desktop-products .table-row');
+
+            categoryFilter.addEventListener('change', function() {
+                const selectedCategory = this.value;
+
+                mobileProducts.forEach(card => {
+                    if (selectedCategory === '' || card.dataset.category === selectedCategory) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                desktopRows.forEach(row => {
+                    if (selectedCategory === '' || row.dataset.category === selectedCategory) {
+                        row.style.display = 'table-row';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
             });
 
             // Animations with Anime.js

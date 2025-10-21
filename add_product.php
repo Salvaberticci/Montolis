@@ -45,6 +45,7 @@
         $product->wholesale_price = $_POST['wholesale_price'];
         $product->third_party_sale_price = $_POST['third_party_sale_price'];
         $product->third_party_seller_percentage = $_POST['third_party_seller_percentage'];
+        $product->category = $_POST['categoria'];
 
         $image=!empty($_FILES["imagen"]["name"])
             ? sha1_file($_FILES['imagen']['tmp_name']) . "-" . basename($_FILES["imagen"]["name"]) : "";
@@ -128,6 +129,21 @@
                             <div class="mb-6">
                                 <label for="descripcion" class="block text-gray-700 text-sm font-bold mb-2">Descripción</label>
                                 <textarea class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200" id="descripcion" name="descripcion" rows="4" required></textarea>
+                            </div>
+                            <div class="mb-6">
+                                <label for="categoria" class="block text-gray-700 text-sm font-bold mb-2">Categoría</label>
+                                <select class="shadow appearance-none border rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200 text-base" id="categoria" name="categoria" required style="min-height: 44px;">
+                                    <option value="General">General</option>
+                                    <option value="Electrónicos">Electrónicos</option>
+                                    <option value="Hogar">Hogar</option>
+                                    <option value="Deportes">Deportes</option>
+                                    <option value="Belleza">Belleza</option>
+                                    <option value="Ropa">Ropa</option>
+                                    <option value="Juguetes">Juguetes</option>
+                                    <option value="Libros">Libros</option>
+                                    <option value="Automotriz">Automotriz</option>
+                                    <option value="Salud">Salud</option>
+                                </select>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
                                 <div>
