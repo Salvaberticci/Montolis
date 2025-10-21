@@ -93,7 +93,7 @@
                 $iva_rate = 0.16;
                 $price_with_iva = $sale_price * (1 + $iva_rate);
                 $wholesale_with_iva = $wholesale_price * (1 + $iva_rate);
-                $whatsapp_message = urlencode("Hola, me interesa este producto:\n\n{$name}\n{$description}\nPrecio: \${$price_with_iva} (incluye IVA 16%)\nPrecio al mayor: \${$wholesale_with_iva} (incluye IVA 16%)");
+                $whatsapp_message = urlencode("Hola, me interesa este producto:\n\n{$name}\n{$description}\nPrecio al detal: \${$sale_price}\nPrecio al mayor (4+): \${$wholesale_price}");
                 $whatsapp_url = "https://wa.me/584163723527?text={$whatsapp_message}";
                 echo "<div class='product-card bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out' data-category='" . htmlspecialchars($category) . "'>";
                 echo "<img src='{$image_src}' alt='{$name}' class='w-full h-48 object-cover cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")'>";
@@ -475,18 +475,14 @@
 
             cart.forEach((item, index) => {
                 const quantity = item.quantity || 1;
-                const priceType = item.isWholesale ? ' (precio al mayor)' : '';
+                const priceType = item.isWholesale ? ' (precio al mayor)' : ' (precio al detal)';
                 const itemPrice = parseFloat(item.price);
-                const itemPriceWithIva = itemPrice * (1 + ivaRate);
-                const itemTotal = itemPriceWithIva * quantity;
-                message += `${index + 1}. ${item.name} - $${itemPriceWithIva.toFixed(2)}${priceType} x ${quantity} = $${itemTotal.toFixed(2)} (IVA incluido)\n`;
+                const itemTotal = itemPrice * quantity;
+                message += `${index + 1}. ${item.name} - $${itemPrice.toFixed(2)}${priceType} x ${quantity} = $${itemTotal.toFixed(2)}\n`;
                 subtotal += itemPrice * quantity;
             });
 
-            const ivaAmount = subtotal * ivaRate;
-            const total = subtotal + ivaAmount;
-
-            message += `\nSubtotal: $${subtotal.toFixed(2)}\nIVA (16%): $${ivaAmount.toFixed(2)}\nTotal: $${total.toFixed(2)}`;
+            message += `\nTotal: $${subtotal.toFixed(2)}`;
 
             const whatsappUrl = `https://wa.me/584163723527?text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
