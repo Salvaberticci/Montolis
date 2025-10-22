@@ -49,6 +49,12 @@ $stmt = $product->read();
                 transform: translateX(0); /* Mostrar sidebar en móvil */
             }
         }
+
+        /* Fix dropdown option text color to black */
+        #category-filter option {
+            color: black !important;
+            background-color: white !important;
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -133,12 +139,12 @@ $stmt = $product->read();
                         <h3 class="text-2xl font-bold text-gray-700">Listado de Productos</h3>
                         <div class="mt-4 sm:mt-0">
                             <label for="category-filter" class="block text-sm font-medium text-gray-700 mb-1">Filtrar por Categoría:</label>
-                            <select id="category-filter" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <select id="category-filter" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" style="color: black;">
                                 <option value="">Todas las Categorías</option>
                                 <?php
                                 $categories_stmt = $product->getCategories();
                                 while ($cat_row = $categories_stmt->fetch(PDO::FETCH_ASSOC)) {
-                                    echo "<option value='" . htmlspecialchars($cat_row['category']) . "'>" . htmlspecialchars($cat_row['category']) . "</option>";
+                                    echo "<option value='" . htmlspecialchars($cat_row['name']) . "' style='color: black; background-color: white;'>" . htmlspecialchars($cat_row['name']) . "</option>";
                                 }
                                 ?>
                             </select>
