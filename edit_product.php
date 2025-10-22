@@ -124,6 +124,12 @@
                 <a href="add_product.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
                     <i class="fas fa-plus mr-3"></i> Añadir Producto
                 </a>
+                <a href="categories.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
+                    <i class="fas fa-tags mr-3"></i> Categorías
+                </a>
+                <a href="catalog_settings.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
+                    <i class="fas fa-cog mr-3"></i> Configuración Catálogo
+                </a>
                 <a href="catalog.php" target="_blank" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
                     <i class="fas fa-book-open mr-3"></i> Ver Catálogo
                 </a>
