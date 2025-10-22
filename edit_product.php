@@ -46,11 +46,13 @@
 
     include_once 'config/database.php';
     include_once 'objects/product.php';
+    include_once 'objects/category.php';
 
     $database = new Database();
     $db = $database->getConnection();
 
     $product = new Product($db);
+    $category = new Category($db);
     $message = '';
     $id = isset($_GET['id']) ? $_GET['id'] : die('ERROR: missing ID.');
     $product->id = $id;
@@ -171,16 +173,13 @@
                             <div class="mb-6">
                                 <label for="categoria" class="block text-gray-700 text-sm font-bold mb-2">Categoría</label>
                                 <select class="shadow appearance-none border rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline transition-all duration-200 text-base" id="categoria" name="categoria" required style="min-height: 44px;">
-                                    <option value="General" <?php echo ($product->category == 'General') ? 'selected' : ''; ?>>General</option>
-                                    <option value="Electrónicos" <?php echo ($product->category == 'Electrónicos') ? 'selected' : ''; ?>>Electrónicos</option>
-                                    <option value="Hogar" <?php echo ($product->category == 'Hogar') ? 'selected' : ''; ?>>Hogar</option>
-                                    <option value="Deportes" <?php echo ($product->category == 'Deportes') ? 'selected' : ''; ?>>Deportes</option>
-                                    <option value="Belleza" <?php echo ($product->category == 'Belleza') ? 'selected' : ''; ?>>Belleza</option>
-                                    <option value="Ropa" <?php echo ($product->category == 'Ropa') ? 'selected' : ''; ?>>Ropa</option>
-                                    <option value="Juguetes" <?php echo ($product->category == 'Juguetes') ? 'selected' : ''; ?>>Juguetes</option>
-                                    <option value="Libros" <?php echo ($product->category == 'Libros') ? 'selected' : ''; ?>>Libros</option>
-                                    <option value="Automotriz" <?php echo ($product->category == 'Automotriz') ? 'selected' : ''; ?>>Automotriz</option>
-                                    <option value="Salud" <?php echo ($product->category == 'Salud') ? 'selected' : ''; ?>>Salud</option>
+                                    <?php
+                                    $stmt = $category->readActive();
+                                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                        $selected = ($product->category == $row['name']) ? 'selected' : '';
+                                        echo "<option value='" . htmlspecialchars($row['name']) . "' $selected>" . htmlspecialchars($row['name']) . "</option>";
+                                    }
+                                    ?>
                                 </select>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
