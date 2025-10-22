@@ -133,9 +133,6 @@
                 <a href="catalog.php" target="_blank" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
                     <i class="fas fa-book-open mr-3"></i> Ver Catálogo
                 </a>
-                <a href="sales.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
-                    <i class="fas fa-file-invoice-dollar mr-3"></i> Ver Ventas
-                </a>
                 <a href="inventory_movements.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
                     <i class="fas fa-exchange-alt mr-3"></i> Movimientos
                 </a>

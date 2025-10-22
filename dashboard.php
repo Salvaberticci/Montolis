@@ -87,9 +87,6 @@ $stmt = $product->read();
                 <a href="statistics.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
                     <i class="fas fa-chart-bar mr-3"></i> Estadísticas
                 </a>
-                <a href="sales.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
-                    <i class="fas fa-shopping-cart mr-3"></i> Ver Ventas
-                </a>
                 <div class="border-t border-gray-600 mt-6 pt-6">
                     <div class="px-6 py-2 text-gray-400 text-sm">
                         <i class="fas fa-user mr-2"></i><?php echo isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'Usuario'; ?>

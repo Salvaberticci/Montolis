@@ -31,8 +31,7 @@ Un sistema completo de gestión de inventario desarrollado en PHP con interfaz m
 ### Recent Updates
 
 - **Removed Register Sale Section**: The register sale functionality has been removed from the interface to streamline the user experience.
-- **Added 'View Sales' Menu Option**: Introduced a 'View Sales' menu option accessible from both the dashboard and add product pages, improving navigation to sales-related features.
-- **Enhanced Sales View**: Upgraded the sales view to display total sales summary and detailed individual sales records, now including profit data for comprehensive financial insights.
+- **Removed 'View Sales' Section**: The dedicated sales view has been removed as sales data is already visible in the statistics section.
 
 ## ✨ Características
 
