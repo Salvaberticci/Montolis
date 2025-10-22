@@ -203,7 +203,6 @@ ini_set('post_max_size', '5M');
    - **Título del catálogo**
    - **Mínimo para precio mayor** (actualmente 4 unidades)
    - **Mostrar productos sin stock**
-   - **Mostrar precios para terceros**
    - **Habilitar/deshabilitar búsqueda**
    - **Habilitar/deshabilitar filtros por categoría**
 
@@ -463,7 +462,6 @@ $user->changePassword(); // Cambiar contraseña
 - **Título Personalizable**: Cambiar el título del catálogo público
 - **Mínimo Mayor**: Cantidad mínima para precio al mayor (4 unidades)
 - **Productos Sin Stock**: Mostrar/ocultar productos agotados
-- **Precios Terceros**: Mostrar precios para vendedores externos
 - **Búsqueda**: Habilitar/deshabilitar búsqueda de productos
 - **Filtros Categoría**: Habilitar filtros por categorías
 

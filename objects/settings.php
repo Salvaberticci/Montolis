@@ -86,9 +86,6 @@ class Settings {
         return $this->get('catalog_description') ?: 'Descubre nuestros productos';
     }
 
-    function getShowThirdPartyPrices() {
-        return $this->get('show_third_party_prices') === '1';
-    }
 
     function getProductsPerPage() {
         return (int) $this->get('products_per_page') ?: 12;

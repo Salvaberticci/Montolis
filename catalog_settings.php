@@ -44,7 +44,6 @@
             'wholesale_minimum' => $_POST['wholesale_minimum'],
             'catalog_title' => $_POST['catalog_title'],
             'catalog_description' => $_POST['catalog_description'],
-            'show_third_party_prices' => isset($_POST['show_third_party_prices']) ? '1' : '0',
             'products_per_page' => $_POST['products_per_page'],
             'enable_product_search' => isset($_POST['enable_product_search']) ? '1' : '0',
             'enable_category_filter' => isset($_POST['enable_category_filter']) ? '1' : '0'
@@ -162,13 +161,6 @@
                                     </label>
                                 </div>
 
-                                <div class="flex items-center">
-                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600" id="show_third_party_prices" name="show_third_party_prices" <?php echo $settings->getShowThirdPartyPrices() ? 'checked' : ''; ?>>
-                                    <label for="show_third_party_prices" class="ml-3 text-gray-700">
-                                        <span class="font-medium">Mostrar precios para terceros</span>
-                                        <p class="text-sm text-gray-500">Los precios para vendedores terceros serán visibles en el catálogo</p>
-                                    </label>
-                                </div>
 
                                 <div class="flex items-center">
                                     <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600" id="enable_product_search" name="enable_product_search" <?php echo $settings->getEnableProductSearch() ? 'checked' : ''; ?>>
@@ -203,7 +195,6 @@
                             <div><strong>Mínimo Mayorista:</strong> <?php echo $settings->getWholesaleMinimum(); ?> unidades</div>
                             <div><strong>Productos por Página:</strong> <?php echo $settings->getProductsPerPage(); ?></div>
                             <div><strong>Mostrar Sin Stock:</strong> <?php echo $settings->getShowOutOfStock() ? 'Sí' : 'No'; ?></div>
-                            <div><strong>Precios Terceros:</strong> <?php echo $settings->getShowThirdPartyPrices() ? 'Sí' : 'No'; ?></div>
                             <div><strong>Búsqueda Habilitada:</strong> <?php echo $settings->getEnableProductSearch() ? 'Sí' : 'No'; ?></div>
                             <div><strong>Filtro Categorías:</strong> <?php echo $settings->getEnableCategoryFilter() ? 'Sí' : 'No'; ?></div>
                         </div>

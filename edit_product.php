@@ -15,6 +15,22 @@
             height: 100%;
             z-index: -1;
         }
+        @media (min-width: 768px) {
+            #menu-toggle {
+                display: none !important;
+            }
+            #sidebar {
+                transform: translateX(0) !important; /* Siempre visible en escritorio */
+            }
+        }
+        @media (max-width: 767px) {
+            #sidebar {
+                transform: translateX(-100%); /* Ocultar sidebar en móvil por defecto */
+            }
+            #sidebar.sidebar-open-mobile {
+                transform: translateX(0); /* Mostrar sidebar en móvil */
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -95,7 +111,7 @@
     
     ?>
     <div class="flex">
-        <div id="sidebar" class="bg-gray-800 text-white w-64 min-h-screen fixed top-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-30">
+        <div id="sidebar" class="bg-gray-800 text-white w-64 min-h-screen fixed top-0 left-0 transform transition-transform duration-300 ease-in-out z-30">
             <div class="p-6 text-2xl font-bold flex items-center">
                 <img src="images/logo.png" alt="Montoli's Logo" class="h-10 mr-3"> Montoli's
             </div>
@@ -131,7 +147,7 @@
                 </div>
             </nav>
         </div>
-        <div id="content" class="flex-1 md:ml-64 transition-all duration-300 ease-in-out">
+        <div id="content" class="flex-1 transition-all duration-300 ease-in-out md:ml-64">
             <header class="bg-white shadow-md p-4 flex justify-between items-center">
                 <button id="menu-toggle" class="md:hidden text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors" style="min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-bars text-2xl"></i>
@@ -218,49 +234,49 @@
     </div>
 
     <script>
-        const menuToggle = document.getElementById('menu-toggle');
-        const sidebar = document.getElementById('sidebar');
-        const content = document.getElementById('content');
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const content = document.getElementById('content');
 
-        if (menuToggle) {
-            menuToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('-translate-x-full');
-                content.classList.toggle('md:ml-64');
+            if (menuToggle) {
+                menuToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('sidebar-open-mobile');
+                });
+            }
+
+            // Swipe gesture for mobile sidebar
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+
+            document.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
             });
-        }
 
-        // Swipe gesture for mobile sidebar
-        let startX = 0;
-        let currentX = 0;
-        let isDragging = false;
+            document.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                currentX = e.touches[0].clientX;
+                const diff = currentX - startX;
 
-        document.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            isDragging = true;
-        });
+                // Only handle swipe from left edge
+                if (startX < 20 && diff > 50) {
+                    sidebar.classList.add('sidebar-open-mobile');
+                }
+            });
 
-        document.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            currentX = e.touches[0].clientX;
-            const diff = currentX - startX;
+            document.addEventListener('touchend', () => {
+                isDragging = false;
+            });
 
-            // Only handle swipe from left edge
-            if (startX < 20 && diff > 50) {
-                sidebar.classList.remove('-translate-x-full');
-                content.classList.add('md:ml-64');
-            }
-        });
-
-        document.addEventListener('touchend', () => {
-            isDragging = false;
-        });
-
-        // Close sidebar when clicking outside on mobile
-        content.addEventListener('click', () => {
-            if (window.innerWidth < 768) {
-                sidebar.classList.add('-translate-x-full');
-                content.classList.remove('md:ml-64');
-            }
+            // Close sidebar when clicking outside on mobile
+            content.addEventListener('click', () => {
+                if (window.innerWidth < 768 && sidebar.classList.contains('sidebar-open-mobile')) {
+                    sidebar.classList.remove('sidebar-open-mobile');
+                }
+            });
         });
 
         // Animation with Anime.js
