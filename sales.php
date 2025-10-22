@@ -34,8 +34,24 @@
     $database = new Database();
     $db = $database->getConnection();
 
-    $sale = new Sale($db);
-    $stmt = $sale->read();
+    // Custom query to get sales with product cost for profit calculation
+    $query = "SELECT s.id, p.name as product_name, s.quantity_sold, s.sale_price, p.product_cost, s.sale_type, s.sale_date, s.payment_type, s.payment_status, s.remaining_balance FROM sales s LEFT JOIN products p ON s.product_id = p.id ORDER BY s.sale_date DESC";
+    $stmt = $db->prepare($query);
+    $stmt->execute();
+
+    // Calculate totals
+    $total_sales = 0;
+    $total_profit = 0;
+    $sales_data = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $profit = ($row['sale_price'] - $row['product_cost']) * $row['quantity_sold'];
+        $total_sales += $row['sale_price'] * $row['quantity_sold'];
+        $total_profit += $profit;
+        $sales_data[] = array_merge($row, ['profit' => $profit]);
+    }
+    // Reset stmt for reuse
+    $stmt = $db->prepare($query);
+    $stmt->execute();
     ?>
     <div class="flex">
         <!-- Sidebar -->
@@ -58,9 +74,6 @@
                 </a>
                 <a href="catalog.php" target="_blank" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
                     <i class="fas fa-book-open mr-3"></i> Ver Catálogo
-                </a>
-                <a href="add_sale.php" class="flex items-center py-3 px-6 text-gray-300 hover:bg-gray-700 transition-colors duration-200">
-                    <i class="fas fa-cart-plus mr-3"></i> Registrar Venta
                 </a>
                 <a href="sales.php" class="flex items-center py-3 px-6 text-gray-300 bg-gray-700">
                     <i class="fas fa-file-invoice-dollar mr-3"></i> Ver Ventas
@@ -93,11 +106,36 @@
             </header>
 
             <main class="p-6">
+                <!-- Sales Summary -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow-xl p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-green-100 text-green-600">
+                                <i class="fas fa-dollar-sign text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Total Ventas</p>
+                                <p class="text-2xl font-bold text-gray-900">$<?php echo number_format($total_sales, 2); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-xl p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                                <i class="fas fa-chart-line text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Ganancia Total</p>
+                                <p class="text-2xl font-bold text-gray-900">$<?php echo number_format($total_profit, 2); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Mobile Card View -->
                 <div class="block md:hidden space-y-4">
                     <?php
-                    $stmt_mobile = $sale->read();
-                    while ($row = $stmt_mobile->fetch(PDO::FETCH_ASSOC)){
+                    foreach ($sales_data as $row) {
                         extract($row);
 
                         // Format payment type
@@ -139,6 +177,7 @@
                         echo "<div class='grid grid-cols-2 gap-4 mb-3'>";
                         echo "<div><span class='text-gray-500 text-sm'>Cantidad:</span><br><span class='font-semibold'>{$quantity_sold}</span></div>";
                         echo "<div><span class='text-gray-500 text-sm'>Precio:</span><br><span class='font-semibold text-green-600'>&#36;{$sale_price}</span></div>";
+                        echo "<div><span class='text-gray-500 text-sm'>Ganancia:</span><br><span class='font-semibold text-blue-600'>&#36;" . number_format($profit, 2) . "</span></div>";
                         echo "<div><span class='text-gray-500 text-sm'>Pago:</span><br><span class='font-semibold'>{$payment_type_label}</span></div>";
                         echo "<div><span class='text-gray-500 text-sm'>Fecha:</span><br><span class='font-semibold'>{$sale_date}</span></div>";
                         echo "</div>";
@@ -162,6 +201,7 @@
                                 <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
                                 <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
                                 <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio de Venta</th>
+                                <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ganancia</th>
                                 <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Pago</th>
                                 <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                                 <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Pendiente</th>
@@ -170,7 +210,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-200">
                             <?php
-                            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+                            foreach ($sales_data as $row) {
                                 extract($row);
 
                                 // Format payment type
@@ -202,6 +242,7 @@
                                     echo "<td class='py-4 px-6 whitespace-nowrap font-medium text-gray-900'>{$product_name}</td>";
                                     echo "<td class='py-4 px-6 text-gray-500'>{$quantity_sold}</td>";
                                     echo "<td class='py-4 px-6 text-green-600 font-semibold'>&#36;{$sale_price}</td>";
+                                    echo "<td class='py-4 px-6 text-blue-600 font-semibold'>&#36;" . number_format($profit, 2) . "</td>";
                                     echo "<td class='py-4 px-6 text-gray-500'>{$payment_type_label}</td>";
                                     echo "<td class='py-4 px-6 {$status_color} font-semibold'>{$status_label}</td>";
                                     echo "<td class='py-4 px-6 text-red-600 font-semibold'>&#36;" . number_format($remaining_balance ?? 0, 2) . "</td>";
