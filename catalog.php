@@ -470,21 +470,16 @@
             }
 
             let message = 'Hola, me interesan los siguientes productos:\n\n';
-            let subtotal = 0;
-            const ivaRate = 0.16;
+            let total = 0;
 
             cart.forEach((item, index) => {
                 const quantity = item.quantity || 1;
                 const priceType = item.isWholesale ? ' (precio al mayor)' : ' (precio al detal)';
                 const itemPrice = parseFloat(item.price);
-                const itemPriceWithIva = itemPrice * (1 + ivaRate);
-                const itemTotal = itemPriceWithIva * quantity;
+                const itemTotal = itemPrice * quantity;
                 message += `${index + 1}. ${item.name} - $${itemPrice.toFixed(2)}${priceType} x ${quantity} = $${itemTotal.toFixed(2)}\n`;
-                subtotal += itemPrice * quantity;
+                total += itemTotal;
             });
-
-            const ivaAmount = subtotal * ivaRate;
-            const total = subtotal + ivaAmount;
 
             message += `\nTotal: $${total.toFixed(2)}`;
 
