@@ -48,6 +48,13 @@
     }
 
     if($_POST) {
+        // Obtener la cantidad anterior del movimiento
+        $old_movement = new Movement($db);
+        $old_movement->id = $_POST['id'];
+        $old_movement->readOne();
+        $old_quantity = $old_movement->quantity;
+        $old_type = $old_movement->type;
+
         $movement->id = $_POST['id'];
         $movement->product_id = $_POST['product_id'];
         $movement->type = $_POST['type'];
@@ -56,11 +63,53 @@
         $movement->client_name = $_POST['client_name'] ?? '';
         $movement->client_contact = $_POST['client_contact'] ?? '';
 
+        // Actualizar el movimiento en la base de datos
         if($movement->update()) {
-            $notification = 'Movimiento actualizado exitosamente.';
-            $notification_type = 'success';
-            // Refresh data
-            $movement->readOne();
+            // Actualizar el stock del producto
+            $product_id_to_update = $movement->product_id;
+            $product_to_update = new Product($db);
+            $product_to_update->id = $product_id_to_update;
+            $product_to_update->readOne();
+            $current_stock = $product_to_update->quantity;
+
+            $new_stock = $current_stock;
+
+            // Revertir el impacto del movimiento antiguo
+            if ($old_type == 'entry') {
+                $new_stock -= $old_quantity;
+            } else { // 'exit'
+                $new_stock += $old_quantity;
+            }
+
+            // Aplicar el impacto del nuevo movimiento
+            if ($movement->type == 'entry') {
+                $new_stock += $movement->quantity;
+            } else { // 'exit'
+                $new_stock -= $movement->quantity;
+            }
+
+            // Validar que el stock no sea negativo
+            if ($new_stock < 0) {
+                // Revertir el movimiento si el stock sería negativo
+                // Esto es una simplificación, en un sistema real se necesitaría una transacción
+                $movement->quantity = $old_quantity; // Restaurar cantidad anterior
+                $movement->type = $old_type; // Restaurar tipo anterior
+                $movement->update(); // Revertir la actualización del movimiento
+
+                $notification = 'Error: La cantidad de salida excede el stock disponible. El movimiento no fue actualizado.';
+                $notification_type = 'error';
+            } else {
+                $product_to_update->quantity = $new_stock;
+                if($product_to_update->update()) {
+                    $notification = 'Movimiento actualizado exitosamente y stock del producto actualizado.';
+                    $notification_type = 'success';
+                    // Refresh data
+                    $movement->readOne();
+                } else {
+                    $notification = 'Movimiento actualizado, pero hubo un error al actualizar el stock del producto.';
+                    $notification_type = 'error';
+                }
+            }
         } else {
             $notification = 'Error al actualizar el movimiento.';
             $notification_type = 'error';

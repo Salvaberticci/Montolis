@@ -193,6 +193,33 @@ INSERT INTO `catalog_settings` (`setting_key`, `setting_value`, `setting_descrip
 -- Table structure for table `inventory_movements`
 -- --------------------------------------------------------
 
+ALTER TABLE `inventory_movements` ADD COLUMN `status` ENUM('completed', 'pending', 'partial') DEFAULT 'completed' AFTER `client_contact`;
+ALTER TABLE `inventory_movements` ADD COLUMN `total_price` DECIMAL(10,2) DEFAULT 0.00 AFTER `status`;
+ALTER TABLE `inventory_movements` ADD COLUMN `paid_amount` DECIMAL(10,2) DEFAULT 0.00 AFTER `total_price`;
+ALTER TABLE `inventory_movements` ADD COLUMN `remaining_balance` DECIMAL(10,2) DEFAULT 0.00 AFTER `paid_amount`;
+
+-- Update existing records to have completed status
+UPDATE `inventory_movements` SET `status` = 'completed', `paid_amount` = `total_price` WHERE `status` IS NULL;
+
+-- --------------------------------------------------------
+-- Table structure for table `credit_payments`
+-- --------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `credit_payments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `movement_id` int(11) NOT NULL,
+  `payment_amount` decimal(10,2) NOT NULL,
+  `payment_date` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `notes` text,
+  PRIMARY KEY (`id`),
+  KEY `movement_id` (`movement_id`),
+  CONSTRAINT `credit_payments_ibfk_1` FOREIGN KEY (`movement_id`) REFERENCES `inventory_movements` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+-- --------------------------------------------------------
+-- Table structure for table `inventory_movements`
+-- --------------------------------------------------------
+
 -- Set AUTO_INCREMENT values
 ALTER TABLE `products` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
 ALTER TABLE `users` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
