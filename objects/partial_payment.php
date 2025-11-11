@@ -105,23 +105,18 @@ class PartialPayment {
     }
 
     private function createCreditExitMovement() {
-        $query = "INSERT INTO " . $this->movement_table_name . " SET product_id=:product_id, type=:type, quantity=:quantity, reason=:reason, client_name=:client_name, client_contact=:client_contact";
-        $stmt = $this->conn->prepare($query);
+        // Use Movement class to create the exit movement and update inventory
+        include_once 'movement.php';
+        $movement = new Movement($this->conn);
 
-        $type = "exit";
-        $quantity = 1; // Assuming one product is sold on credit
-        $reason = "Venta a crédito (pago por partes completado)";
+        $movement->product_id = $this->product_id;
+        $movement->type = "exit";
+        $movement->quantity = 1; // Assuming one product is sold on credit
+        $movement->reason = "Venta a crédito (pago por partes completado)";
+        $movement->client_name = $this->client_name;
+        $movement->client_contact = $this->client_contact;
 
-        $stmt->bindParam(":product_id", $this->product_id);
-        $stmt->bindParam(":type", $type);
-        $stmt->bindParam(":quantity", $quantity);
-        $stmt->bindParam(":reason", $reason);
-        $stmt->bindParam(":client_name", $this->client_name);
-        $stmt->bindParam(":client_contact", $this->client_contact);
-
-        if($stmt->execute()) {
-            // Optionally update product quantity if not already handled by movement class
-            // For now, assuming product quantity is handled by the main movement class for 'exit' type
+        if($movement->create()) {
             return true;
         }
         return false;
