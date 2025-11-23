@@ -172,6 +172,48 @@
                         }
                     }
                 }
+            } else if ($movement_type == 'partial_payment') {
+                $pp_products = $_POST['pp_products'] ?? [];
+                error_log("Partial payment products: " . print_r($pp_products, true));
+                if(empty($pp_products)) {
+                    $notification = 'Por favor agregue al menos un producto para el pago por partes.';
+                    $notification_type = 'error';
+                } else {
+                    $success_count = 0;
+                    $error_count = 0;
+
+                    foreach($pp_products as $product_data) {
+                        if(!empty($product_data['product_id'])) {
+                            $partial_payment->product_id = $product_data['product_id'];
+
+                            // Get product price for total amount
+                            $product->id = $product_data['product_id'];
+                            $product->readOne();
+                            $partial_payment->total_amount = $product->sale_price;
+                            $partial_payment->paid_amount = 0;
+                            $partial_payment->remaining_amount = $product->sale_price;
+                            $partial_payment->client_name = $_POST['pp_client_name'];
+                            $partial_payment->client_contact = $_POST['pp_client_contact'];
+
+                            if ($partial_payment->create()) {
+                                $success_count++;
+                            } else {
+                                $error_count++;
+                            }
+                        }
+                    }
+
+                    if($success_count > 0) {
+                        $notification = "Se registraron {$success_count} pagos por partes exitosamente.";
+                        if($error_count > 0) {
+                            $notification .= " {$error_count} pagos por partes fallaron.";
+                        }
+                        $notification_type = $error_count > 0 ? 'warning' : 'success';
+                    } else {
+                        $notification = 'Error al registrar los pagos por partes.';
+                        $notification_type = 'error';
+                    }
+                }
             }
         }
     }
@@ -405,15 +447,15 @@
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-6">
-                            <div>
+                            <div id="reason-div">
                                 <label for="reason" class="block text-sm font-medium text-gray-700">Razón</label>
                                 <input type="text" name="reason" id="reason" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" required style="min-height: 44px;">
                             </div>
-                            <div>
+                            <div id="general-client-name-div">
                                 <label for="client_name" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label>
                                 <input type="text" name="client_name" id="client_name" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" style="min-height: 44px;">
                             </div>
-                            <div class="sm:col-span-2">
+                            <div class="sm:col-span-2" id="general-client-contact-div">
                                 <label for="client_contact" class="block text-sm font-medium text-gray-700">Contacto del Cliente</label>
                                 <input type="text" name="client_contact" id="client_contact" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" placeholder="Teléfono o email" style="min-height: 44px;">
                             </div>
@@ -716,6 +758,85 @@
         // Initialize the form on page load
         document.addEventListener('DOMContentLoaded', function() {
             toggleProductSection();
+
+            // Add event listener for cancel button
+            document.getElementById('cancel-delete').addEventListener('click', closeDeleteModal);
+
+            // Close modal when clicking outside
+            document.getElementById('delete-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeDeleteModal();
+                }
+            });
+
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const content = document.getElementById('content');
+
+            if (menuToggle) {
+                menuToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('-translate-x-full');
+                    content.classList.toggle('md:ml-64');
+                });
+            }
+
+            // Swipe gesture for mobile sidebar
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+
+            document.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+            });
+
+            document.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                currentX = e.touches[0].clientX;
+                const diff = currentX - startX;
+
+                // Only handle swipe from left edge
+                if (startX < 20 && diff > 50) {
+                    sidebar.classList.remove('-translate-x-full');
+                    content.classList.add('md:ml-64');
+                }
+            });
+
+            document.addEventListener('touchend', () => {
+                isDragging = false;
+            });
+
+            // Close sidebar when clicking outside on mobile
+            content.addEventListener('click', () => {
+                if (window.innerWidth < 768) {
+                    sidebar.classList.add('-translate-x-full');
+                    content.classList.remove('md:ml-64');
+                }
+            });
+
+            // Animations with Anime.js
+            anime({
+                targets: '.table-row',
+                translateY: [50, 0],
+                opacity: [0, 1],
+                delay: anime.stagger(100),
+                easing: 'easeOutExpo'
+            });
+
+            document.getElementById('cancel-add-payment').addEventListener('click', closeAddPaymentModal);
+            document.getElementById('cancel-delete-partial-payment').addEventListener('click', closeDeletePartialPaymentModal);
+
+            document.getElementById('add-payment-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeAddPaymentModal();
+                }
+            });
+
+            document.getElementById('delete-partial-payment-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeDeletePartialPaymentModal();
+                }
+            });
         });
 
         <?php
@@ -728,70 +849,25 @@
         if($notification): ?>
             showNotification('<?php echo $notification; ?>', '<?php echo $notification_type; ?>');
             <?php endif; ?>
-        const menuToggle = document.getElementById('menu-toggle');
-        const sidebar = document.getElementById('sidebar');
-        const content = document.getElementById('content');
-
-        if (menuToggle) {
-            menuToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('-translate-x-full');
-                content.classList.toggle('md:ml-64');
-            });
-        }
-
-        // Swipe gesture for mobile sidebar
-        let startX = 0;
-        let currentX = 0;
-        let isDragging = false;
-
-        document.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            isDragging = true;
-        });
-
-        document.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            currentX = e.touches[0].clientX;
-            const diff = currentX - startX;
-
-            // Only handle swipe from left edge
-            if (startX < 20 && diff > 50) {
-                sidebar.classList.remove('-translate-x-full');
-                content.classList.add('md:ml-64');
-            }
-        });
-
-        document.addEventListener('touchend', () => {
-            isDragging = false;
-        });
-
-        // Close sidebar when clicking outside on mobile
-        content.addEventListener('click', () => {
-            if (window.innerWidth < 768) {
-                sidebar.classList.add('-translate-x-full');
-                content.classList.remove('md:ml-64');
-            }
-        });
-
-        // Animations with Anime.js
-        anime({
-            targets: '.table-row',
-            translateY: [50, 0],
-            opacity: [0, 1],
-            delay: anime.stagger(100),
-            easing: 'easeOutExpo'
-        });
 
         function toggleProductSection() {
             const type = document.getElementById('type').value;
             const entrySection = document.getElementById('entry-products-section');
             const multipleSection = document.getElementById('multiple-products-section');
             const partialPaymentSection = document.getElementById('partial-payment-section');
+            const generalClientNameDiv = document.getElementById('general-client-name-div');
+            const generalClientContactDiv = document.getElementById('general-client-contact-div');
+            const reasonDiv = document.getElementById('reason-div');
 
             // Hide all sections initially
             entrySection.classList.add('hidden');
             multipleSection.classList.add('hidden');
             partialPaymentSection.classList.add('hidden');
+
+            // Hide general client fields initially
+            generalClientNameDiv.classList.remove('hidden');
+            generalClientContactDiv.classList.remove('hidden');
+            reasonDiv.classList.remove('hidden');
 
             // Remove required attributes from all product sections
             document.querySelectorAll('#entry-products-container select[required]').forEach(select => select.removeAttribute('required'));
@@ -805,15 +881,21 @@
                 multipleSection.classList.remove('hidden');
                 document.querySelectorAll('#products-container select').forEach(select => select.setAttribute('required', 'required'));
                 document.querySelectorAll('#products-container input[type="number"]').forEach(input => input.setAttribute('required', 'required'));
+                document.getElementById('reason').setAttribute('required', 'required');
             } else if (type === 'entry') {
                 entrySection.classList.remove('hidden');
                 document.querySelectorAll('#entry-products-container select').forEach(select => select.setAttribute('required', 'required'));
                 document.querySelectorAll('#entry-products-container input[type="number"]').forEach(input => input.setAttribute('required', 'required'));
+                document.getElementById('reason').setAttribute('required', 'required');
             } else if (type === 'partial_payment') {
                 partialPaymentSection.classList.remove('hidden');
+                generalClientNameDiv.classList.add('hidden');
+                generalClientContactDiv.classList.add('hidden');
+                reasonDiv.classList.add('hidden');
                 document.querySelectorAll('#partial-payment-products-container select').forEach(select => select.setAttribute('required', 'required'));
                 document.getElementById('pp_client_name').setAttribute('required', 'required');
                 document.getElementById('pp_client_contact').setAttribute('required', 'required');
+                document.getElementById('reason').removeAttribute('required');
             }
         }
 
