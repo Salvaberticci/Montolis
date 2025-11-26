@@ -38,6 +38,8 @@ class PartialPayment {
         $stmt->bindParam(":client_contact", $this->client_contact);
 
         if($stmt->execute()) {
+            // Deduct stock immediately when partial payment is registered
+            $this->createInitialExitMovement();
             return true;
         }
         return false;
@@ -97,8 +99,45 @@ class PartialPayment {
 
         if($stmt->execute()) {
             if ($this->is_completed) {
-                $this->createCreditExitMovement();
+                $this->createSaleRecord();
             }
+            return true;
+        }
+        return false;
+    }
+
+    private function createInitialExitMovement() {
+        // Use Movement class to create the exit movement and update inventory
+        include_once 'movement.php';
+        $movement = new Movement($this->conn);
+
+        $movement->product_id = $this->product_id;
+        $movement->type = "exit";
+        $movement->quantity = 1; // Assuming one product is sold on credit
+        $movement->reason = "Pago por partes registrado";
+        $movement->client_name = $this->client_name;
+        $movement->client_contact = $this->client_contact;
+
+        if($movement->create()) {
+            return true;
+        }
+        return false;
+    }
+
+    private function createSaleRecord() {
+        // Use Sale class to create the sale record
+        include_once 'sale.php';
+        $sale = new Sale($this->conn);
+
+        $sale->product_id = $this->product_id;
+        $sale->quantity_sold = 1;
+        $sale->sale_price = $this->total_amount;
+        $sale->sale_type = 'partial'; // Special type for partial payments
+        $sale->payment_type = 'credit';
+        $sale->payment_status = 'paid';
+        $sale->remaining_balance = 0;
+
+        if($sale->create()) {
             return true;
         }
         return false;

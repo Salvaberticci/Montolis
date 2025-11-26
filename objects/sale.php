@@ -52,18 +52,22 @@ class Sale {
             return false;
         }
 
-        // Update product stock
-        $query = "UPDATE products SET quantity = quantity - :quantity_sold WHERE id = :product_id";
-        $stmt = $this->conn->prepare($query);
+        // Update product stock only if not partial payment (partial payments deduct stock via movement)
+        if ($this->sale_type != 'partial') {
+            $query = "UPDATE products SET quantity = quantity - :quantity_sold WHERE id = :product_id";
+            $stmt = $this->conn->prepare($query);
 
-        $stmt->bindParam(":quantity_sold", $this->quantity_sold);
-        $stmt->bindParam(":product_id", $this->product_id);
+            $stmt->bindParam(":quantity_sold", $this->quantity_sold);
+            $stmt->bindParam(":product_id", $this->product_id);
 
-        if($stmt->execute()) {
-            return true;
+            if($stmt->execute()) {
+                return true;
+            }
+
+            return false;
         }
 
-        return false;
+        return true;
     }
 
     function read() {
