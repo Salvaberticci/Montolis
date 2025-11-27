@@ -11,6 +11,7 @@ class Movement {
     public $date;
     public $client_name;
     public $client_contact;
+    public $skip_stock_update = false; // Flag to skip stock update for partial payments
 
     public function __construct($db) {
         $this->conn = $db;
@@ -35,8 +36,10 @@ class Movement {
         $stmt->bindParam(":client_contact", $this->client_contact);
 
         if($stmt->execute()) {
-            // Update product quantity
-            $this->updateProductQuantity();
+            // Update product quantity only if not skipped
+            if (!$this->skip_stock_update) {
+                $this->updateProductQuantity();
+            }
             error_log("Movement created successfully for product_id: " . $this->product_id . ", type: " . $this->type . ", quantity: " . $this->quantity);
             return true;
         } else {

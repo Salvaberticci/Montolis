@@ -39,7 +39,7 @@ class PartialPayment {
 
         if($stmt->execute()) {
             // Deduct stock immediately when partial payment is registered
-            $this->createInitialExitMovement();
+            $this->deductStock();
             return true;
         }
         return false;
@@ -99,6 +99,7 @@ class PartialPayment {
 
         if($stmt->execute()) {
             if ($this->is_completed) {
+                $this->createCompletedExitMovement();
                 $this->createSaleRecord();
             }
             return true;
@@ -106,17 +107,29 @@ class PartialPayment {
         return false;
     }
 
-    private function createInitialExitMovement() {
-        // Use Movement class to create the exit movement and update inventory
+    private function deductStock() {
+        // Directly update product stock
+        $query = "UPDATE products SET quantity = quantity - 1 WHERE id = :product_id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":product_id", $this->product_id);
+        if($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
+
+    private function createCompletedExitMovement() {
+        // Use Movement class to create the exit movement without updating stock (already deducted)
         include_once 'movement.php';
         $movement = new Movement($this->conn);
 
         $movement->product_id = $this->product_id;
         $movement->type = "exit";
         $movement->quantity = 1; // Assuming one product is sold on credit
-        $movement->reason = "Pago por partes registrado";
+        $movement->reason = "Venta a crédito (pago por partes completado)";
         $movement->client_name = $this->client_name;
         $movement->client_contact = $this->client_contact;
+        $movement->skip_stock_update = true; // Don't deduct stock again
 
         if($movement->create()) {
             return true;
