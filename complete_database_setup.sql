@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- Insert default admin user (password: admin123)
-INSERT INTO `users` (`username`, `password_hash`, `email`, `role`) VALUES
+INSERT IGNORE INTO `users` (`username`, `password_hash`, `email`, `role`) VALUES
 ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@montolis.com', 'admin');
 
 -- --------------------------------------------------------
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   `wholesale_price` decimal(10,2) NOT NULL DEFAULT 0.00,
   `third_party_sale_price` decimal(10,2) NOT NULL DEFAULT 0.00,
   `third_party_seller_percentage` decimal(5,2) NOT NULL DEFAULT 0.00,
-  `category` varchar(100) NOT NULL DEFAULT 'General',
+  `category` varchar(100) DEFAULT 'General',
   `image` varchar(512) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS `sales` (
   `product_id` int(11) NOT NULL,
   `quantity_sold` int(11) NOT NULL,
   `sale_price` decimal(10,2) NOT NULL,
-  `sale_type` enum('direct','third_party') NOT NULL,
+  `sale_type` enum('direct','third_party','partial') NOT NULL,
   `sale_date` timestamp DEFAULT CURRENT_TIMESTAMP,
   `payment_type` enum('cash','credit') DEFAULT 'cash',
   `payment_status` enum('paid','pending','partial') DEFAULT 'paid',
@@ -193,10 +193,23 @@ INSERT INTO `catalog_settings` (`setting_key`, `setting_value`, `setting_descrip
 -- Table structure for table `inventory_movements`
 -- --------------------------------------------------------
 
-ALTER TABLE `inventory_movements` ADD COLUMN `status` ENUM('completed', 'pending', 'partial') DEFAULT 'completed' AFTER `client_contact`;
-ALTER TABLE `inventory_movements` ADD COLUMN `total_price` DECIMAL(10,2) DEFAULT 0.00 AFTER `status`;
-ALTER TABLE `inventory_movements` ADD COLUMN `paid_amount` DECIMAL(10,2) DEFAULT 0.00 AFTER `total_price`;
-ALTER TABLE `inventory_movements` ADD COLUMN `remaining_balance` DECIMAL(10,2) DEFAULT 0.00 AFTER `paid_amount`;
+CREATE TABLE IF NOT EXISTS `inventory_movements` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL,
+  `type` enum('entry','exit') NOT NULL,
+  `quantity` int(11) NOT NULL,
+  `reason` varchar(255) DEFAULT NULL,
+  `date` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `client_name` varchar(100) DEFAULT NULL,
+  `client_contact` varchar(50) DEFAULT NULL,
+  `status` enum('completed','pending','partial') DEFAULT 'completed',
+  `total_price` decimal(10,2) DEFAULT 0.00,
+  `paid_amount` decimal(10,2) DEFAULT 0.00,
+  `remaining_balance` decimal(10,2) DEFAULT 0.00,
+  PRIMARY KEY (`id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `inventory_movements_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- Update existing records to have completed status
 UPDATE `inventory_movements` SET `status` = 'completed', `paid_amount` = `total_price` WHERE `status` IS NULL;
