@@ -217,7 +217,7 @@ if(isset($_GET['delete_user_id'])) {
                                     <label class="block text-gray-700 text-sm font-bold mb-1">Rol</label>
                                     <select name="role" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                                         <option value="admin">Administrador</option>
-                                        <option value="staff">Personal</option>
+                                        <option value="user">Usuario (Staff)</option>
                                     </select>
                                 </div>
                                 <button type="submit" name="add_user" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full transition-colors">
@@ -246,20 +246,24 @@ if(isset($_GET['delete_user_id'])) {
                                 <tbody class="divide-y divide-gray-200">
                                     <?php
                                     $stmt = $user->readAll();
-                                    while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                                        echo "<tr>";
-                                        echo "<td class='px-6 py-4 font-medium text-gray-900'>{$row['username']}</td>";
-                                        echo "<td class='px-6 py-4 text-gray-600'>{$row['email']}</td>";
-                                        echo "<td class='px-6 py-4'><span class='px-2 py-1 rounded-full text-xs font-bold " . ($row['role'] == 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700') . "'>{$row['role']}</span></td>";
-                                        echo "<td class='px-6 py-4 text-gray-500'>{$row['created_at']}</td>";
-                                        echo "<td class='px-6 py-4 text-center'>";
-                                        if($row['id'] != $_SESSION['user_id']) {
-                                            echo "<a href='configuration.php?delete_user_id={$row['id']}' class='text-red-500 hover:text-red-700 transition-colors' onclick='return confirm(\"¿Estás seguro de eliminar este usuario?\")'><i class='fas fa-trash-alt'></i></a>";
-                                        } else {
-                                            echo "<span class='text-gray-400' title='No puedes eliminarte a ti mismo'><i class='fas fa-trash-alt'></i></span>";
+                                    if($stmt) {
+                                        while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                            echo "<tr>";
+                                            echo "<td class='px-6 py-4 font-medium text-gray-900'>{$row['username']}</td>";
+                                            echo "<td class='px-6 py-4 text-gray-600'>{$row['email']}</td>";
+                                            echo "<td class='px-6 py-4'><span class='px-2 py-1 rounded-full text-xs font-bold " . ($row['role'] == 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700') . "'>{$row['role']}</span></td>";
+                                            echo "<td class='px-6 py-4 text-gray-500'>{$row['created_at']}</td>";
+                                            echo "<td class='px-6 py-4 text-center'>";
+                                            if($row['id'] != $_SESSION['user_id']) {
+                                                echo "<a href='configuration.php?delete_user_id={$row['id']}' class='text-red-500 hover:text-red-700 transition-colors' onclick='return confirm(\"¿Estás seguro de eliminar este usuario?\")'><i class='fas fa-trash-alt'></i></a>";
+                                            } else {
+                                                echo "<span class='text-gray-400' title='No puedes eliminarte a ti mismo'><i class='fas fa-trash-alt'></i></span>";
+                                            }
+                                            echo "</td>";
+                                            echo "</tr>";
                                         }
-                                        echo "</td>";
-                                        echo "</tr>";
+                                    } else {
+                                        echo "<tr><td colspan='5' class='px-6 py-4 text-center text-red-500'>Error al cargar usuarios. Por favor, verifique la base de datos.</td></tr>";
                                     }
                                     ?>
                                 </tbody>
