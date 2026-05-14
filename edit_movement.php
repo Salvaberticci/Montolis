@@ -62,6 +62,7 @@
         $movement->reason = $_POST['reason'];
         $movement->client_name = $_POST['client_name'] ?? '';
         $movement->client_contact = $_POST['client_contact'] ?? '';
+        $movement->total_price = $_POST['total_price'] ?? 0;
 
         // Actualizar el movimiento en la base de datos
         if($movement->update()) {
@@ -220,6 +221,10 @@
                                 <div>
                                     <label for="client_contact" class="block text-sm font-medium text-gray-700">Contacto del Cliente</label>
                                     <input type="text" name="client_contact" id="client_contact" value="<?php echo htmlspecialchars($movement->client_contact); ?>" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" placeholder="Teléfono o email" style="min-height: 44px;">
+                                </div>
+                                <div>
+                                    <label for="total_price" class="block text-sm font-medium text-gray-700">Precio Total ($)</label>
+                                    <input type="number" name="total_price" id="total_price" value="<?php echo $movement->total_price; ?>" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" step="0.01" style="min-height: 44px;">
                                 </div>
                             </div>
                             <div class="mt-6 flex gap-4">

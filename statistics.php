@@ -129,7 +129,7 @@
     $most_moved_products = $stmt_most_moved->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
     // Get total sales stats from inventory movements (exits)
-    $query_total_sales = "SELECT COUNT(*) as total_sales, SUM(m.quantity) as total_quantity_sold, SUM(p.sale_price * m.quantity) as total_revenue FROM inventory_movements m LEFT JOIN products p ON m.product_id = p.id WHERE m.type = 'exit'";
+    $query_total_sales = "SELECT COUNT(*) as total_sales, SUM(m.quantity) as total_quantity_sold, SUM(m.total_price) as total_revenue FROM inventory_movements m WHERE m.type = 'exit'";
     $stmt_total_sales = $db->prepare($query_total_sales);
     $stmt_total_sales->execute();
     $total_stats = $stmt_total_sales->fetch(PDO::FETCH_ASSOC) ?: ['total_sales' => 0, 'total_quantity_sold' => 0, 'total_revenue' => 0];
@@ -153,11 +153,11 @@
     $stmt_total_investment->execute();
     $investment_data = $stmt_total_investment->fetch(PDO::FETCH_ASSOC) ?: ['total_investment' => 0];
 
-    // Calculate profits from inventory movements (exits) - using sale_price vs product_cost
+    // Calculate profits from inventory movements (exits) - using the recorded total_price vs product_cost
     $query_profits = "SELECT
-                        SUM((p.sale_price * m.quantity) - (p.product_cost * m.quantity)) as total_profits,
+                        SUM(m.total_price - (p.product_cost * m.quantity)) as total_profits,
                         SUM(p.product_cost * m.quantity) as total_cost_sold,
-                        SUM(p.sale_price * m.quantity) as total_sales_value
+                        SUM(m.total_price) as total_sales_value
                       FROM inventory_movements m
                       LEFT JOIN products p ON m.product_id = p.id
                       WHERE m.type = 'exit'";

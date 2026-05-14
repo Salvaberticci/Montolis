@@ -11,6 +11,7 @@ class Movement {
     public $date;
     public $client_name;
     public $client_contact;
+    public $total_price;
     public $skip_stock_update = false; // Flag to skip stock update for partial payments
 
     public function __construct($db) {
@@ -18,7 +19,7 @@ class Movement {
     }
 
     function create() {
-        $query = "INSERT INTO " . $this->table_name . " SET product_id=:product_id, type=:type, quantity=:quantity, reason=:reason, client_name=:client_name, client_contact=:client_contact";
+        $query = "INSERT INTO " . $this->table_name . " SET product_id=:product_id, type=:type, quantity=:quantity, reason=:reason, client_name=:client_name, client_contact=:client_contact, total_price=:total_price";
         $stmt = $this->conn->prepare($query);
 
         $this->product_id = htmlspecialchars(strip_tags($this->product_id));
@@ -27,6 +28,7 @@ class Movement {
         $this->reason = htmlspecialchars(strip_tags($this->reason));
         $this->client_name = htmlspecialchars(strip_tags($this->client_name));
         $this->client_contact = htmlspecialchars(strip_tags($this->client_contact));
+        $this->total_price = htmlspecialchars(strip_tags($this->total_price));
 
         $stmt->bindParam(":product_id", $this->product_id);
         $stmt->bindParam(":type", $this->type);
@@ -34,6 +36,7 @@ class Movement {
         $stmt->bindParam(":reason", $this->reason);
         $stmt->bindParam(":client_name", $this->client_name);
         $stmt->bindParam(":client_contact", $this->client_contact);
+        $stmt->bindParam(":total_price", $this->total_price);
 
         if($stmt->execute()) {
             // Update product quantity only if not skipped
@@ -49,7 +52,7 @@ class Movement {
     }
 
     function read($filters = []) {
-        $query = "SELECT m.id, m.product_id, p.name as product_name, m.type, m.quantity, m.reason, m.date, m.client_name, m.client_contact FROM " . $this->table_name . " m JOIN products p ON m.product_id = p.id WHERE 1=1";
+        $query = "SELECT m.id, m.product_id, p.name as product_name, m.type, m.quantity, m.reason, m.date, m.client_name, m.client_contact, m.total_price FROM " . $this->table_name . " m JOIN products p ON m.product_id = p.id WHERE 1=1";
 
         $params = [];
 
@@ -86,7 +89,7 @@ class Movement {
     }
 
     function readOne() {
-        $query = "SELECT m.id, m.product_id, p.name as product_name, m.type, m.quantity, m.reason, m.client_name, m.client_contact, m.date FROM " . $this->table_name . " m JOIN products p ON m.product_id = p.id WHERE m.id = ? LIMIT 0,1";
+        $query = "SELECT m.id, m.product_id, p.name as product_name, m.type, m.quantity, m.reason, m.client_name, m.client_contact, m.date, m.total_price FROM " . $this->table_name . " m JOIN products p ON m.product_id = p.id WHERE m.id = ? LIMIT 0,1";
 
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $this->id);
@@ -101,10 +104,11 @@ class Movement {
         $this->reason = $row['reason'];
         $this->client_name = $row['client_name'];
         $this->client_contact = $row['client_contact'];
+        $this->total_price = $row['total_price'];
     }
 
     function update() {
-        $query = "UPDATE " . $this->table_name . " SET product_id=:product_id, type=:type, quantity=:quantity, reason=:reason, client_name=:client_name, client_contact=:client_contact WHERE id=:id";
+        $query = "UPDATE " . $this->table_name . " SET product_id=:product_id, type=:type, quantity=:quantity, reason=:reason, client_name=:client_name, client_contact=:client_contact, total_price=:total_price WHERE id=:id";
 
         $stmt = $this->conn->prepare($query);
 
@@ -114,6 +118,7 @@ class Movement {
         $this->reason = htmlspecialchars(strip_tags($this->reason));
         $this->client_name = htmlspecialchars(strip_tags($this->client_name));
         $this->client_contact = htmlspecialchars(strip_tags($this->client_contact));
+        $this->total_price = htmlspecialchars(strip_tags($this->total_price));
         $this->id = htmlspecialchars(strip_tags($this->id));
 
         $stmt->bindParam(":product_id", $this->product_id);
@@ -122,6 +127,7 @@ class Movement {
         $stmt->bindParam(":reason", $this->reason);
         $stmt->bindParam(":client_name", $this->client_name);
         $stmt->bindParam(":client_contact", $this->client_contact);
+        $stmt->bindParam(":total_price", $this->total_price);
         $stmt->bindParam(":id", $this->id);
 
         if($stmt->execute()) {
