@@ -20,7 +20,7 @@ class Product {
     }
 
     function read() {
-        $query = "SELECT id, name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, category, image FROM " . $this->table_name . " ORDER BY id DESC";
+        $query = "SELECT id, name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, category, image FROM " . $this->table_name . " WHERE is_deleted = 0 ORDER BY id DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt;
@@ -112,34 +112,20 @@ class Product {
     }
 
     function delete(){
-        // First, get the image filename
-        $query_select = "SELECT image FROM " . $this->table_name . " WHERE id = ?";
-        $stmt_select = $this->conn->prepare($query_select);
+        // Soft delete: just mark as deleted
+        $query = "UPDATE " . $this->table_name . " SET is_deleted = 1, quantity = 0 WHERE id = ?";
+        $stmt = $this->conn->prepare($query);
         $this->id=htmlspecialchars(strip_tags($this->id));
-        $stmt_select->bindParam(1, $this->id);
-        $stmt_select->execute();
-        $row = $stmt_select->fetch(PDO::FETCH_ASSOC);
+        $stmt->bindParam(1, $this->id);
 
-        // Delete the product from database
-        $query_delete = "DELETE FROM " . $this->table_name . " WHERE id = ?";
-        $stmt_delete = $this->conn->prepare($query_delete);
-        $stmt_delete->bindParam(1, $this->id);
-
-        if($stmt_delete->execute()){
-            // Delete the associated image file if it exists
-            if($row && $row['image'] && $row['image'] != 'placeholder.png'){
-                $image_path = "../uploads/" . $row['image'];
-                if(file_exists($image_path)){
-                    unlink($image_path);
-                }
-            }
+        if($stmt->execute()){
             return true;
         }
         return false;
     }
 
     function search($keywords){
-        $query = "SELECT id, name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, category, image FROM " . $this->table_name . " WHERE (name LIKE ? OR description LIKE ?) AND quantity > 0 ORDER BY id DESC";
+        $query = "SELECT id, name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, category, image FROM " . $this->table_name . " WHERE (name LIKE ? OR description LIKE ?) AND quantity > 0 AND is_deleted = 0 ORDER BY id DESC";
         $stmt = $this->conn->prepare($query);
 
         $keywords=htmlspecialchars(strip_tags($keywords));
@@ -153,7 +139,7 @@ class Product {
     }
 
     function readInStock() {
-        $query = "SELECT id, name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, category, image FROM " . $this->table_name . " WHERE quantity > 0 ORDER BY id DESC";
+        $query = "SELECT id, name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, category, image FROM " . $this->table_name . " WHERE quantity > 0 AND is_deleted = 0 ORDER BY id DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt;
@@ -167,7 +153,7 @@ class Product {
     }
 
     function readByCategory($category) {
-        $query = "SELECT id, name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, category, image FROM " . $this->table_name . " WHERE category = ? AND quantity > 0 ORDER BY id DESC";
+        $query = "SELECT id, name, description, quantity, product_cost, sale_price, wholesale_price, third_party_sale_price, third_party_seller_percentage, category, image FROM " . $this->table_name . " WHERE category = ? AND quantity > 0 AND is_deleted = 0 ORDER BY id DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $category);
         $stmt->execute();

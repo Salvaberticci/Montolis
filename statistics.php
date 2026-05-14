@@ -134,7 +134,7 @@
     $stmt_total_sales->execute();
     $total_stats = $stmt_total_sales->fetch(PDO::FETCH_ASSOC) ?: ['total_sales' => 0, 'total_quantity_sold' => 0, 'total_revenue' => 0];
 
-    $query_total_products = "SELECT COUNT(*) as total_products, SUM(quantity) as total_stock FROM products";
+    $query_total_products = "SELECT COUNT(*) as total_products, SUM(quantity) as total_stock FROM products WHERE is_deleted = 0";
     $stmt_total_products = $db->prepare($query_total_products);
     $stmt_total_products->execute();
     $total_products = $stmt_total_products->fetch(PDO::FETCH_ASSOC) ?: ['total_products' => 0, 'total_stock' => 0];
@@ -166,7 +166,7 @@
     $profit_data = $stmt_profits->fetch(PDO::FETCH_ASSOC) ?: ['total_profits' => 0, 'total_cost_sold' => 0, 'total_sales_value' => 0];
 
     // Calculate total stock value (sum of sale_price * quantity for all products in inventory)
-    $query_stock_value = "SELECT SUM(sale_price * quantity) as total_stock_value FROM products";
+    $query_stock_value = "SELECT SUM(sale_price * quantity) as total_stock_value FROM products WHERE is_deleted = 0";
     $stmt_stock_value = $db->prepare($query_stock_value);
     $stmt_stock_value->execute();
     $stock_data = $stmt_stock_value->fetch(PDO::FETCH_ASSOC) ?: ['total_stock_value' => 0];
