@@ -6,6 +6,7 @@ class PartialPayment {
 
     public $id;
     public $product_id;
+    public $quantity;
     public $total_amount;
     public $paid_amount;
     public $remaining_amount;
@@ -20,10 +21,11 @@ class PartialPayment {
     }
 
     function create() {
-        $query = "INSERT INTO " . $this->table_name . " SET product_id=:product_id, total_amount=:total_amount, paid_amount=:paid_amount, remaining_amount=:remaining_amount, client_name=:client_name, client_contact=:client_contact";
+        $query = "INSERT INTO " . $this->table_name . " SET product_id=:product_id, quantity=:quantity, total_amount=:total_amount, paid_amount=:paid_amount, remaining_amount=:remaining_amount, client_name=:client_name, client_contact=:client_contact";
         $stmt = $this->conn->prepare($query);
 
         $this->product_id = htmlspecialchars(strip_tags($this->product_id));
+        $this->quantity = htmlspecialchars(strip_tags($this->quantity));
         $this->total_amount = htmlspecialchars(strip_tags($this->total_amount));
         $this->paid_amount = htmlspecialchars(strip_tags($this->paid_amount));
         $this->remaining_amount = htmlspecialchars(strip_tags($this->remaining_amount));
@@ -31,6 +33,7 @@ class PartialPayment {
         $this->client_contact = htmlspecialchars(strip_tags($this->client_contact));
 
         $stmt->bindParam(":product_id", $this->product_id);
+        $stmt->bindParam(":quantity", $this->quantity);
         $stmt->bindParam(":total_amount", $this->total_amount);
         $stmt->bindParam(":paid_amount", $this->paid_amount);
         $stmt->bindParam(":remaining_amount", $this->remaining_amount);
@@ -46,14 +49,14 @@ class PartialPayment {
     }
 
     function read() {
-        $query = "SELECT pp.id, pp.product_id, p.name as product_name, pp.total_amount, pp.paid_amount, pp.remaining_amount, pp.client_name, pp.client_contact, pp.date_created, pp.date_updated, pp.is_completed FROM " . $this->table_name . " pp JOIN products p ON pp.product_id = p.id ORDER BY pp.date_created DESC";
+        $query = "SELECT pp.id, pp.product_id, pp.quantity, p.name as product_name, pp.total_amount, pp.paid_amount, pp.remaining_amount, pp.client_name, pp.client_contact, pp.date_created, pp.date_updated, pp.is_completed FROM " . $this->table_name . " pp JOIN products p ON pp.product_id = p.id ORDER BY pp.date_created DESC, pp.id DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt;
     }
 
     function readOne() {
-        $query = "SELECT pp.id, pp.product_id, p.name as product_name, pp.total_amount, pp.paid_amount, pp.remaining_amount, pp.client_name, pp.client_contact, pp.date_created, pp.date_updated, pp.is_completed FROM " . $this->table_name . " pp JOIN products p ON pp.product_id = p.id WHERE pp.id = ? LIMIT 0,1";
+        $query = "SELECT pp.id, pp.product_id, pp.quantity, p.name as product_name, pp.total_amount, pp.paid_amount, pp.remaining_amount, pp.client_name, pp.client_contact, pp.date_created, pp.date_updated, pp.is_completed FROM " . $this->table_name . " pp JOIN products p ON pp.product_id = p.id WHERE pp.id = ? LIMIT 0,1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $this->id);
         $stmt->execute();
@@ -62,6 +65,7 @@ class PartialPayment {
         if ($row) {
             $this->id = $row["id"];
             $this->product_id = $row["product_id"];
+            $this->quantity = $row["quantity"];
             $this->total_amount = $row["total_amount"];
             $this->paid_amount = $row["paid_amount"];
             $this->remaining_amount = $row["remaining_amount"];
@@ -109,8 +113,9 @@ class PartialPayment {
 
     private function deductStock() {
         // Directly update product stock
-        $query = "UPDATE products SET quantity = quantity - 1 WHERE id = :product_id";
+        $query = "UPDATE products SET quantity = quantity - :quantity WHERE id = :product_id";
         $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":quantity", $this->quantity);
         $stmt->bindParam(":product_id", $this->product_id);
         if($stmt->execute()) {
             return true;
@@ -125,7 +130,7 @@ class PartialPayment {
 
         $movement->product_id = $this->product_id;
         $movement->type = "exit";
-        $movement->quantity = 1; // Assuming one product is sold on credit
+        $movement->quantity = $this->quantity; 
         $movement->reason = "Venta a crédito (pago por partes completado)";
         $movement->client_name = $this->client_name;
         $movement->client_contact = $this->client_contact;
@@ -143,7 +148,7 @@ class PartialPayment {
         $sale = new Sale($this->conn);
 
         $sale->product_id = $this->product_id;
-        $sale->quantity_sold = 1;
+        $sale->quantity_sold = $this->quantity;
         $sale->sale_price = $this->total_amount;
         $sale->sale_type = 'partial'; // Special type for partial payments
         $sale->payment_type = 'credit';
@@ -163,7 +168,7 @@ class PartialPayment {
 
         $movement->product_id = $this->product_id;
         $movement->type = "exit";
-        $movement->quantity = 1; // Assuming one product is sold on credit
+        $movement->quantity = $this->quantity; 
         $movement->reason = "Venta a crédito (pago por partes completado)";
         $movement->client_name = $this->client_name;
         $movement->client_contact = $this->client_contact;

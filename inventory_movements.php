@@ -186,18 +186,20 @@
                     foreach($pp_products as $product_data) {
                         if(!empty($product_data['product_id'])) {
                             $partial_payment->product_id = $product_data['product_id'];
+                            $partial_payment->quantity = !empty($product_data['quantity']) ? $product_data['quantity'] : 1;
 
                             // Use provided sale price if available, otherwise fallback to product price
-                            $sale_price = !empty($product_data['sale_price']) ? $product_data['sale_price'] : 0;
-                            if ($sale_price == 0) {
+                            $unit_price = !empty($product_data['sale_price']) ? $product_data['sale_price'] : 0;
+                            if ($unit_price == 0) {
                                 $product->id = $product_data['product_id'];
                                 $product->readOne();
-                                $sale_price = $product->sale_price;
+                                $unit_price = $product->sale_price;
                             }
 
-                            $partial_payment->total_amount = $sale_price;
+                            $total_amount = $unit_price * $partial_payment->quantity;
+                            $partial_payment->total_amount = $total_amount;
                             $partial_payment->paid_amount = 0;
-                            $partial_payment->remaining_amount = $sale_price;
+                            $partial_payment->remaining_amount = $total_amount;
                             $partial_payment->client_name = $_POST['pp_client_name'];
                             $partial_payment->client_contact = $_POST['pp_client_contact'];
 
@@ -314,20 +316,28 @@
                                  </div>
                              </div>
                              <div id="partial-payment-products-container">
-                                 <div class="partial-payment-product-row grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border border-gray-200 rounded-md">
+                                 <div class="partial-payment-product-row grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 border border-gray-200 rounded-md">
                                      <div>
                                          <label class="block text-sm font-medium text-gray-700">Producto</label>
-                                         <select name="pp_products[0][product_id]" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" required style="display: block; min-height: 44px;">
+                                         <select name="pp_products[0][product_id]" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" required style="display: block; min-height: 44px;" onchange="updateRowPrice(this)">
                                              <option value="">Seleccionar producto</option>
                                              <?php
                                              $stmt = $product->read();
                                              while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                                                 echo "<option value='{$row['id']}' data-price='{$row['sale_price']}'>{$row['name']} (Precio: {$row['sale_price']})</option>";
+                                                 echo "<option value='{$row['id']}' data-price='{$row['sale_price']}'>{$row['name']}</option>";
                                              }
                                              ?>
                                          </select>
-                                     </div>
-                                     <div class="flex items-end">
+                                      </div>
+                                      <div>
+                                          <label class="block text-sm font-medium text-gray-700">Precio Unitario ($)</label>
+                                          <input type="number" name="pp_products[0][sale_price]" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" step="0.01" required style="min-height: 44px;">
+                                      </div>
+                                      <div>
+                                          <label class="block text-sm font-medium text-gray-700">Cantidad</label>
+                                          <input type="number" name="pp_products[0][quantity]" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" required min="1" style="min-height: 44px;">
+                                      </div>
+                                      <div class="flex items-end">
                                          <button type="button" onclick="removePartialPaymentProductRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-md text-sm font-medium" style="min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">
                                              <i class="fas fa-trash mr-1"></i>Eliminar
                                          </button>
@@ -495,6 +505,7 @@
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restante</th>
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
+                                    <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                                     <th class="py-4 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                                 </tr>
@@ -512,6 +523,7 @@
                                     echo "<td class='py-4 px-6 whitespace-nowrap text-gray-500'>{$row_pp['remaining_amount']}</td>";
                                     echo "<td class='py-4 px-6 text-gray-500'>{$row_pp['client_name']}</td>";
                                     echo "<td class='py-4 px-6 text-gray-500'>{$row_pp['client_contact']}</td>";
+                                    echo "<td class='py-4 px-6 whitespace-nowrap text-gray-500'>" . date('d/m/Y H:i:s', strtotime($row_pp['date_created'])) . "</td>";
                                     echo "<td class='py-4 px-6 whitespace-nowrap {$status_color} font-semibold'>{$status_label}</td>";
                                     echo "<td class='py-4 px-6 whitespace-nowrap text-sm font-medium'>";
                                     if (!$row_pp["is_completed"]) {
@@ -529,7 +541,6 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
 
                 <div class="bg-white rounded-lg shadow-xl">
                     <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
@@ -559,7 +570,7 @@
                             echo "</div>";
                             echo "<div class='grid grid-cols-2 gap-4 mb-3'>";
                             echo "<div><span class='text-gray-500 text-sm'>Cantidad:</span><br><span class='font-semibold'>{$row['quantity']}</span></div>";
-                            echo "<div><span class='text-gray-500 text-sm'>Fecha:</span><br><span class='font-semibold'>{$row['date']}</span></div>";
+                            echo "<div><span class='text-gray-500 text-sm'>Fecha:</span><br><span class='font-semibold'>" . date('d/m/Y H:i:s', strtotime($row['date'])) . "</span></div>";
                             echo "</div>";
                             if($row['reason']) echo "<div class='mb-2'><span class='text-gray-500 text-sm'>Razón:</span><br><span class='font-medium'>{$row['reason']}</span></div>";
                             if($row['client_name']) echo "<div class='mb-2'><span class='text-gray-500 text-sm'>Cliente:</span><br><span class='font-medium'>{$row['client_name']}</span></div>";
@@ -599,7 +610,7 @@
                                     echo "<td class='py-4 px-6 text-gray-500'>{$row['client_name']}</td>";
                                     echo "<td class='py-4 px-6 text-gray-500'>{$row['client_contact']}</td>";
                                     echo "<td class='py-4 px-6 whitespace-nowrap text-gray-900 font-bold'>$" . number_format($row['total_price'], 2) . "</td>";
-                                    echo "<td class='py-4 px-6 whitespace-nowrap text-gray-500'>{$row['date']}</td>";
+                                    echo "<td class='py-4 px-6 whitespace-nowrap text-gray-500'>" . date('d/m/Y H:i:s', strtotime($row['date'])) . "</td>";
                                     echo "<td class='py-4 px-6 whitespace-nowrap text-sm font-medium'>";
                                     echo "<div class='flex space-x-2'>";
                                     echo "<a href='edit_movement.php?id={$row['id']}' class='bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-xs transition-colors duration-200'>";
@@ -925,7 +936,7 @@
             const container = document.getElementById('partial-payment-products-container');
             const rowCount = container.children.length;
             const rowHtml = `
-                <div class="partial-payment-product-row grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border border-gray-200 rounded-md">
+                <div class="partial-payment-product-row grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 border border-gray-200 rounded-md">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Producto</label>
                         <select name="pp_products[${rowCount}][product_id]" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" required style="display: block; min-height: 44px;" onchange="updateRowPrice(this)">
@@ -933,14 +944,18 @@
                             <?php
                             $stmt = $product->read();
                             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                                echo "<option value='{$row['id']}' data-price='{$row['sale_price']}'>{$row['name']} (Precio: {$row['sale_price']})</option>";
+                                echo "<option value='{$row['id']}' data-price='{$row['sale_price']}'>{$row['name']}</option>";
                             }
                             ?>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Precio de Venta ($)</label>
+                        <label class="block text-sm font-medium text-gray-700">Precio Unitario ($)</label>
                         <input type="number" name="pp_products[${rowCount}][sale_price]" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" step="0.01" required style="min-height: 44px;">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Cantidad</label>
+                        <input type="number" name="pp_products[${rowCount}][quantity]" class="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base" required min="1" style="min-height: 44px;">
                     </div>
                     <div class="flex items-end">
                         <button type="button" onclick="removePartialPaymentProductRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-md text-sm font-medium" style="min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">
