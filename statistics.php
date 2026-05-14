@@ -139,8 +139,16 @@
     $stmt_total_products->execute();
     $total_products = $stmt_total_products->fetch(PDO::FETCH_ASSOC) ?: ['total_products' => 0, 'total_stock' => 0];
 
-    // Calculate total investment (cost of all products currently in stock + products already sold/withdrawn)
-    $query_total_investment = "SELECT SUM(product_cost * quantity) as total_investment FROM products";
+    // Calculate total cumulative investment (Initial Stock + All Entries)
+    // Formula: product_cost * (current_quantity + total_exits + active_partials)
+    $query_total_investment = "SELECT SUM(
+                                p.product_cost * (
+                                    p.quantity + 
+                                    COALESCE((SELECT SUM(m.quantity) FROM inventory_movements m WHERE m.product_id = p.id AND m.type = 'exit'), 0) +
+                                    COALESCE((SELECT COUNT(*) FROM partial_payments pp WHERE pp.product_id = p.id AND pp.is_completed = 0), 0)
+                                )
+                              ) as total_investment 
+                              FROM products p";
     $stmt_total_investment = $db->prepare($query_total_investment);
     $stmt_total_investment->execute();
     $investment_data = $stmt_total_investment->fetch(PDO::FETCH_ASSOC) ?: ['total_investment' => 0];
@@ -247,7 +255,7 @@
                                     <span class="tooltip-text">Inversión acumulada total (costo de adquisición de productos en stock + costo de productos ya vendidos o retirados)</span>
                                 </div>
                             </div>
-                            <p class="text-2xl sm:text-3xl font-bold text-red-600">$<?php echo number_format(($investment_data['total_investment'] ?? 0) + ($profit_data['total_cost_sold'] ?? 0), 2); ?></p>
+                            <p class="text-2xl sm:text-3xl font-bold text-red-600">$<?php echo number_format($investment_data['total_investment'] ?? 0, 2); ?></p>
                         </div>
                         <div class="bg-red-500 rounded-full p-3 sm:p-4 flex-shrink-0">
                             <i class="fas fa-dollar-sign text-white text-xl sm:text-2xl"></i>
