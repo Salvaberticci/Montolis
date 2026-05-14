@@ -852,7 +852,14 @@
                     closeDeletePartialPaymentModal();
                 }
             });
-        });
+            });
+
+            // Initialize form sections on page load
+            setTimeout(function() {
+                if (typeof toggleProductSection === 'function') {
+                    toggleProductSection();
+                }
+            }, 100);
 
         <?php
         if(isset($_SESSION['notification'])) {
@@ -913,13 +920,6 @@
                 document.getElementById('reason').removeAttribute('required');
             }
         }
-
-        // Update total amount when product is selected for partial payment
-        document.getElementById('pp_product_id').addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            const price = selectedOption.dataset.price;
-            document.getElementById('pp_total_amount').value = price;
-        });
 
         function addPartialPaymentProductRow() {
             const container = document.getElementById('partial-payment-products-container');
