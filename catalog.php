@@ -90,13 +90,16 @@
                 extract($row);
                 $image_path = "uploads/{$image}";
                 $image_src = ($image && file_exists($image_path)) ? $image_path : "images/placeholder.png";
+                $thumb_name = pathinfo($image, PATHINFO_FILENAME) . ".jpg";
+                $thumb_path = "uploads/thumbs600/{$thumb_name}";
+                $thumb_src = ($image && file_exists($thumb_path)) ? $thumb_path : $image_src;
                 $iva_rate = 0.16;
                 $price_with_iva = $sale_price * (1 + $iva_rate);
                 $wholesale_with_iva = $wholesale_price * (1 + $iva_rate);
                 $whatsapp_message = urlencode("Hola, me interesa este producto:\n\n{$name}\n{$description}\nPrecio al detal: \${$sale_price}\nPrecio al mayor (4+): \${$wholesale_price}");
                 $whatsapp_url = "https://wa.me/584163723527?text={$whatsapp_message}";
                 echo "<div class='product-card bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out' data-category='" . htmlspecialchars($category) . "'>";
-                echo "<img src='{$image_src}' alt='{$name}' class='w-full h-48 object-cover cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")'>";
+                echo "<img loading='lazy' decoding='async' src='{$thumb_src}' alt='{$name}' class='w-full h-48 object-cover cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")'>";
                 echo "<div class='p-4'>";
                 echo "<h3 class='text-xl font-bold text-gray-800 mb-2 cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")'>{$name}</h3>";
                 echo "<p class='text-gray-600 text-sm mb-2 cursor-pointer' onclick='openModal(\"{$name}\", \"{$description}\", \"{$image_src}\", \"{$sale_price}\", \"{$wholesale_price}\", \"{$whatsapp_url}\")'>{$description}</p>";

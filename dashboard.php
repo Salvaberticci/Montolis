@@ -160,9 +160,12 @@ $stmt = $product->read();
                         $stmt_mobile = $product->read();
                         while ($row = $stmt_mobile->fetch(PDO::FETCH_ASSOC)){
                             extract($row);
+                            $thumb_name = pathinfo($image, PATHINFO_FILENAME) . ".jpg";
+                            $thumb_path = "uploads/thumbs/{$thumb_name}";
+                            $thumb_src = ($image && file_exists($thumb_path)) ? $thumb_path : "uploads/{$image}";
                             echo "<div class='bg-white rounded-lg shadow-xl p-4 product-card' data-category='" . htmlspecialchars($category) . "'>";
                             echo "<div class='flex items-center mb-3'>";
-                            echo $image ? "<img src='uploads/{$image}' class='h-16 w-16 rounded-full object-cover mr-4 shadow-md' />" : "<img src='images/placeholder.png' class='h-16 w-16 rounded-full object-cover mr-4 shadow-md' />";
+                            echo $image ? "<img loading='lazy' decoding='async' src='{$thumb_src}' class='h-16 w-16 rounded-full object-cover mr-4 shadow-md' />" : "<img loading='lazy' decoding='async' src='images/placeholder.png' class='h-16 w-16 rounded-full object-cover mr-4 shadow-md' />";
                             echo "<div class='flex-1'>";
                             echo "<h4 class='font-bold text-lg text-gray-900'>{$name}</h4>";
                             echo "<p class='text-gray-600 text-sm'>{$description}</p>";
@@ -213,9 +216,12 @@ $stmt = $product->read();
                                 $stmt->execute(); // Re-execute to reset the cursor
                                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
                                     extract($row);
+                            $thumb_name = pathinfo($image, PATHINFO_FILENAME) . ".jpg";
+                            $thumb_path = "uploads/thumbs/{$thumb_name}";
+                            $thumb_src = ($image && file_exists($thumb_path)) ? $thumb_path : "uploads/{$image}";
                                     echo "<tr class='table-row' data-category='" . htmlspecialchars($category) . "'>";
                                         echo "<td class='py-4 px-6 whitespace-nowrap flex items-center'>";
-                                        echo $image ? "<img src='uploads/{$image}' class='h-12 w-12 rounded-full object-cover mr-4 shadow-md' />" : "<img src='images/placeholder.png' class='h-12 w-12 rounded-full object-cover mr-4 shadow-md' />";
+                                        echo $image ? "<img loading='lazy' decoding='async' src='{$thumb_src}' class='h-12 w-12 rounded-full object-cover mr-4 shadow-md' />" : "<img loading='lazy' decoding='async' src='images/placeholder.png' class='h-12 w-12 rounded-full object-cover mr-4 shadow-md' />";
                                         echo "<span class='font-medium text-gray-900'>{$name}</span></td>";
                                         echo "<td class='py-4 px-6 text-gray-500'>{$description}</td>";
                                         echo "<td class='py-4 px-6 text-gray-500'>{$category}</td>";
